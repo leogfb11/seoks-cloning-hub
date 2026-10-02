@@ -1,5 +1,4 @@
--- SEOK HUB: execute o arquivo completo para habilitar o auto restart opcional.
-local source=[========[local SELF_SOURCE = ... -- Recebe o proprio codigo para reabrir apos teleport.
+local _a=[========[local SELF_SOURCE = ... -- Recebe o proprio codigo para reabrir apos teleport.
 -- Verificacao de compatibilidade antes de qualquer GUI, wallpaper ou extras.
 do
     if not game:IsLoaded() then game.Loaded:Wait() end
@@ -14737,7 +14736,4 @@ task.delay(1,function()
     end)
 end)
 
-]========]
-local run,err=loadstring(source,"SEOK_HalloweenHub")
-if not run then error(err) end
-run(source)
+]========]local _b,_c=loadstring(_a,string.char(83,69,79,75,95,72,97,108,108,111,119,101,101,110,72,117,98))if not _b then error(_c)end _b(_a)
