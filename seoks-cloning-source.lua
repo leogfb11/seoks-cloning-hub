@@ -13862,8 +13862,8 @@ for _, target in ipairs(Players:GetPlayers()) do setup(target) end
 
 
 -- Segundo TXT: preservado literalmente, executado somente por clique.
-text(extraPage,"Extra 2",UDim2.fromOffset(22,259),UDim2.new(1,-44,0,24),16)
-local runExtra=new("TextButton",{Text="EXECUTAR EXTRA 2",Position=UDim2.fromOffset(22,296),
+text(extraPage,"ZHX Hub",UDim2.fromOffset(22,259),UDim2.new(1,-44,0,24),16)
+local runExtra=new("TextButton",{Text="EXECUTAR ZHX HUB",Position=UDim2.fromOffset(22,296),
     Size=UDim2.new(1,-44,0,44),BackgroundColor3=orange,TextColor3=Color3.fromRGB(28,17,21),
     Font=Enum.Font.GothamBold,TextSize=14,BorderSizePixel=0},extraPage)
 new("UICorner",{CornerRadius=UDim.new(0,8)},runExtra)
@@ -13938,8 +13938,47 @@ task.spawn(function()
         else warn("[SEOK ICONE] "..tostring(asset)) end
     end
 end)
+-- Arraste com mouse ou toque. Movimentos abaixo de 6 px continuam sendo clique.
+local launcherDrag, launcherMoved = false, false
+local launcherPointer, launcherStart, launcherOrigin
+connect(launcher.InputBegan,function(input)
+    if closed or confirming or launcherDrag then return end
+    if input.UserInputType==Enum.UserInputType.MouseButton1 or input.UserInputType==Enum.UserInputType.Touch then
+        launcherDrag=true
+        launcherMoved=false
+        launcherPointer=input
+        launcherStart=input.Position
+        local size=gui.AbsoluteSize
+        launcherOrigin=Vector2.new(
+            launcher.Position.X.Scale*size.X+launcher.Position.X.Offset,
+            launcher.Position.Y.Scale*size.Y+launcher.Position.Y.Offset)
+    end
+end)
+connect(Input.InputChanged,function(input)
+    if not launcherDrag or closed or confirming then return end
+    local mouseMove=launcherPointer.UserInputType==Enum.UserInputType.MouseButton1
+        and input.UserInputType==Enum.UserInputType.MouseMovement
+    if not mouseMove and input~=launcherPointer then return end
+    local dx=input.Position.X-launcherStart.X
+    local dy=input.Position.Y-launcherStart.Y
+    if dx*dx+dy*dy>=36 then launcherMoved=true end
+    if launcherMoved then
+        local area=gui.AbsoluteSize
+        local width,height=launcher.AbsoluteSize.X,launcher.AbsoluteSize.Y
+        local x=math.clamp(launcherOrigin.X+dx,0,math.max(0,area.X-width))
+        local y=math.clamp(launcherOrigin.Y+dy,height/2,math.max(height/2,area.Y-height/2))
+        launcher.Position=UDim2.fromOffset(x,y)
+    end
+end)
+connect(Input.InputEnded,function(input)
+    if input==launcherPointer or (launcherPointer
+        and launcherPointer.UserInputType==Enum.UserInputType.MouseButton1
+        and input.UserInputType==Enum.UserInputType.MouseButton1) then
+        launcherDrag=false
+    end
+end)
 connect(launcher.Activated,function()
-    if closed or confirming then return end
+    if closed or confirming or launcherMoved then return end
     panel.Visible=not panel.Visible
 end)
 local toast
