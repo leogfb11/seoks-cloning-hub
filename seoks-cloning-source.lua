@@ -1,3 +1,72 @@
+-- SEOK HUB: execute o arquivo completo para habilitar o auto restart opcional.
+local source=[========[local SELF_SOURCE = ... -- Recebe o proprio codigo para reabrir apos teleport.
+-- Verificacao de compatibilidade antes de qualquer GUI, wallpaper ou extras.
+do
+    if not game:IsLoaded() then game.Loaded:Wait() end
+    local storage = game:GetService("ReplicatedStorage")
+    local function supportsCloning()
+        local events = storage:FindFirstChild("Events")
+        if not events then return false end
+        local catalog = events:FindFirstChild("CatalogGuiRemote")
+        local outfits = events:FindFirstChild("SavedOutfitsRemote")
+        return catalog ~= nil and catalog:IsA("RemoteFunction")
+            and outfits ~= nil and outfits:IsA("RemoteFunction")
+    end
+    -- Pequena tolerancia para os componentes chegarem ao cliente.
+    local deadline = os.clock() + 5
+    while not supportsCloning() and os.clock() < deadline do task.wait(0.2) end
+    if not supportsCloning() then
+        local pg = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+        local previous = pg:FindFirstChild("SeokUnsupportedNotice")
+        if previous then previous:Destroy() end
+        local screen = Instance.new("ScreenGui")
+        screen.Name = "SeokUnsupportedNotice"
+        screen.ResetOnSpawn = false
+        screen.DisplayOrder = 100000
+        screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        local box = Instance.new("Frame")
+        box.AnchorPoint = Vector2.new(1,1)
+        box.Position = UDim2.new(1,-18,1,-18)
+        box.Size = UDim2.new(0.9,0,0,120)
+        box.BackgroundColor3 = Color3.fromRGB(47,16,25)
+        box.BorderSizePixel = 0
+        box.Parent = screen
+        local limit = Instance.new("UISizeConstraint")
+        limit.MaxSize = Vector2.new(380,120)
+        limit.Parent = box
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0,12)
+        corner.Parent = box
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Color3.fromRGB(244,91,116)
+        stroke.Parent = box
+        local title = Instance.new("TextLabel")
+        title.BackgroundTransparency = 1
+        title.Position = UDim2.fromOffset(16,12)
+        title.Size = UDim2.new(1,-32,0,24)
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 16
+        title.TextColor3 = Color3.fromRGB(244,91,116)
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Text = "JOGO NÃO SUPORTADO"
+        title.Parent = box
+        local message = Instance.new("TextLabel")
+        message.BackgroundTransparency = 1
+        message.Position = UDim2.fromOffset(16,43)
+        message.Size = UDim2.new(1,-32,0,64)
+        message.Font = Enum.Font.GothamMedium
+        message.TextSize = 14
+        message.TextWrapped = true
+        message.TextXAlignment = Enum.TextXAlignment.Left
+        message.TextColor3 = Color3.fromRGB(255,240,243)
+        message.Text = "Este jogo não suporta o SEOK'S CLONING HUB. Abra o Catalog Avatar Creator para usar o script."
+        message.Parent = box
+        screen.Parent = pg
+        task.delay(8,function() screen:Destroy() end)
+        return
+    end
+end
+
 -- SEOK Halloween 1.0. Substitui a versao anterior; execute este arquivo inteiro.
 -- EXTRAS contem o TXT anexado e so o executa quando voce clicar.
 do
@@ -27,6 +96,15 @@ do
     gui.DisplayOrder = 100000
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.Parent = parent
+    -- MUSICA DO CARREGAMENTO: altere apenas o numero abaixo.
+    local LOADING_MUSIC_ID = "134959834418523"
+    local LOADING_FADE_SECONDS = 0.8
+    local lofi = Instance.new("Sound")
+    lofi.Name = "LoadingLofi"
+    lofi.SoundId = "rbxassetid://" .. LOADING_MUSIC_ID
+    lofi.Looped = true
+    lofi.Volume = 0
+    lofi.Parent = game:GetService("SoundService")
 
     local ok, err = xpcall(function()
         local function new(class, props, owner)
@@ -36,7 +114,7 @@ do
             return object
         end
         local root = new("Frame", {
-            Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(26, 14, 22),
+            Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.fromRGB(32,10,17),
             BorderSizePixel = 0, ClipsDescendants = true, Active = true,
         }, gui)
         local imageAsset = WALLPAPER_ASSET
@@ -81,11 +159,11 @@ do
             wallpaper = wallpaper or layer
         end
         new("Frame", {Size = UDim2.fromScale(1,1), BorderSizePixel = 0,
-            BackgroundColor3 = Color3.fromRGB(15,8,18), BackgroundTransparency = 0.38,
+            BackgroundColor3 = Color3.fromRGB(20,5,10), BackgroundTransparency = 0.38,
             ZIndex = 2}, root)
         local function label(text, pos, size, fontSize, color)
             return new("TextLabel", {Text = text, Position = pos, Size = size,
-                BackgroundTransparency = 1, TextColor3 = color or Color3.fromRGB(255,241,235),
+                BackgroundTransparency = 1, TextColor3 = color or Color3.fromRGB(255,240,243),
                 Font = Enum.Font.GothamMedium, TextSize = fontSize, ZIndex = 3,
                 TextWrapped = true}, root)
         end
@@ -95,8 +173,8 @@ do
         title.TextScaled = true
         new("UITextSizeConstraint", {MaxTextSize = 48, MinTextSize = 14}, title)
         title.TextStrokeTransparency = 0.8
-        label("S E O K J I N", UDim2.fromScale(0.1,0.55), UDim2.fromScale(0.8,0.04), 14,
-            Color3.fromRGB(255,193,184))
+        label("By: xLgfb_1357BRx", UDim2.fromScale(0.1,0.55), UDim2.fromScale(0.8,0.04), 14,
+            Color3.fromRGB(255,180,192))
         local status = label("Preparing interface...", UDim2.new(0.07,0,1,-108),
             UDim2.new(0.70,0,0,24), 14)
         status.TextXAlignment = Enum.TextXAlignment.Left
@@ -108,15 +186,18 @@ do
             ClipsDescendants = true, ZIndex = 3}, root)
         new("UICorner", {CornerRadius = UDim.new(0,3)}, track)
         local fill = new("Frame", {Size = UDim2.fromScale(0,1), BorderSizePixel = 0,
-            BackgroundColor3 = Color3.fromRGB(246,154,161), ZIndex = 4}, track)
+            BackgroundColor3 = Color3.fromRGB(244,91,116), ZIndex = 4}, track)
         new("UICorner", {CornerRadius = UDim.new(0,3)}, fill)
-        new("UIGradient", {Color = ColorSequence.new(Color3.fromRGB(193,55,86),
-            Color3.fromRGB(255,214,180))}, fill)
+        new("UIGradient", {Color = ColorSequence.new(Color3.fromRGB(244,91,116),
+            Color3.fromRGB(255,180,192))}, fill)
         -- Espera limitada para a textura; as etapas seguintes sao apenas decorativas.
         local deadline = os.clock() + 3
         while imageAsset ~= "" and not wallpaper.IsLoaded and os.clock() < deadline do task.wait(0.05) end
         local stages = {"Loading Workspace...", "Loading Players...", "Loading Avatar Data...",
             "Preparing Cloning Interface...", "Finalizing...", "Ready!"}
+        -- O som comeca junto da animacao da barra.
+        lofi:Play()
+        TweenService:Create(lofi,TweenInfo.new(0.35),{Volume=0.18}):Play()
         local start = os.clock()
         while gui.Parent do
             local progress = math.clamp((os.clock() - start) / DURATION, 0, 1)
@@ -127,15 +208,19 @@ do
             task.wait(0.03)
         end
         task.wait(0.35)
+        -- O mesmo intervalo sincroniza o fade visual e o volume.
+        TweenService:Create(lofi,TweenInfo.new(LOADING_FADE_SECONDS),{Volume=0}):Play()
         for _, object in ipairs(gui:GetDescendants()) do
             local goal = {}
             if object:IsA("GuiObject") then goal.BackgroundTransparency = 1 end
             if object:IsA("TextLabel") then goal.TextTransparency = 1; goal.TextStrokeTransparency = 1 end
             if object:IsA("ImageLabel") then goal.ImageTransparency = 1 end
-            if next(goal) then TweenService:Create(object, TweenInfo.new(0.5), goal):Play() end
+            if next(goal) then TweenService:Create(object, TweenInfo.new(LOADING_FADE_SECONDS), goal):Play() end
         end
-        task.wait(0.55)
+        task.wait(LOADING_FADE_SECONDS + 0.05)
     end, function(message) return tostring(message) end)
+    lofi:Stop()
+    lofi:Destroy()
     gui:Destroy()
     if not ok then warn("[SEOK] Falha na abertura: " .. tostring(err)) end
 end
@@ -254,7 +339,7 @@ local Tween = game:GetService("TweenService")
 local Input = game:GetService("UserInputService")
 local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local connections, prompts = {}, {}
-local alive, cloning, copying = true, true, false
+local alive, cloning, copying = true, false, false
 local function connect(signal, callback)
     local c = signal:Connect(callback)
     connections[#connections+1] = c
@@ -266,31 +351,34 @@ local function new(class, props, parent)
     v.Parent = parent
     return v
 end
-local orange = Color3.fromRGB(255, 139, 51)
-local white = Color3.fromRGB(250, 246, 242)
-local muted = Color3.fromRGB(167, 156, 173)
+local orange = Color3.fromRGB(244,91,116)
+local white = Color3.fromRGB(255,240,243)
+local muted = Color3.fromRGB(195,157,168)
 local gui = new("ScreenGui", {Name="SeokHalloweenHub", ResetOnSpawn=false,
     ZIndexBehavior=Enum.ZIndexBehavior.Sibling, DisplayOrder=1000}, playerGui)
 local stop = new("BindableEvent", {Name="Shutdown"}, gui)
+local commandCleanup=function() end
 local function cleanup()
     if not alive then return end
     alive = false
+    commandCleanup()
     for _, c in ipairs(connections) do c:Disconnect() end
     for p in pairs(prompts) do p:Destroy() end
     gui:Destroy()
 end
 connect(stop.Event, cleanup)
-local panel = new("Frame", {Name="Panel", AnchorPoint=Vector2.new(0.5,0.5),
+local panel = new("Frame", {Name="Panel", Visible=false, AnchorPoint=Vector2.new(0.5,0),
     Position=UDim2.fromScale(0.5,0.5), Size=UDim2.fromOffset(700,360),
-    BackgroundColor3=Color3.fromRGB(20,16,26), BorderSizePixel=0, Active=true}, gui)
+    BackgroundColor3=Color3.fromRGB(32,10,17), BorderSizePixel=0, Active=true}, gui)
 new("UICorner", {CornerRadius=UDim.new(0,16)}, panel)
-new("UIStroke", {Color=Color3.fromRGB(112,62,38), Thickness=1}, panel)
+new("UIStroke", {Color=Color3.fromRGB(198,34,65), Thickness=1}, panel)
 local scale = new("UIScale", {}, panel)
 local function fit()
     local camera = workspace.CurrentCamera
     if camera then scale.Scale = math.min(1, (camera.ViewportSize.X-24)/700, (camera.ViewportSize.Y-36)/360) end
 end
 fit()
+panel.Position=UDim2.new(0.5,0,0.5,-180*scale.Scale)
 connect(gui:GetPropertyChangedSignal("AbsoluteSize"), fit)
 local function text(parent, value, pos, size, fontSize, color)
     return new("TextLabel", {Text=value, Position=pos, Size=size, BackgroundTransparency=1,
@@ -298,8 +386,8 @@ local function text(parent, value, pos, size, fontSize, color)
         TextXAlignment=Enum.TextXAlignment.Left, TextWrapped=true}, parent)
 end
 local top = new("Frame", {Size=UDim2.new(1,0,0,68), BackgroundTransparency=1, Active=true}, panel)
-local heading=text(top, "🎃 SEOK'S CLONING HUB — Ver. 1.0 — Halloween Edition",
-    UDim2.fromOffset(20,14), UDim2.new(1,-116,0,38), 17)
+local heading=text(top, "◆ SEOK'S CLONING HUB — Ver. 1.0",
+    UDim2.fromOffset(89,14), UDim2.new(1,-185,0,38), 17)
 heading.Font=Enum.Font.GothamBold
 heading.TextScaled=true
 new("UITextSizeConstraint", {MinTextSize=10, MaxTextSize=17}, heading)
@@ -307,12 +395,12 @@ local minimize=new("TextButton", {Text="−", Position=UDim2.new(1,-84,0,20),
     Size=UDim2.fromOffset(28,28), BackgroundTransparency=1, TextSize=25,
     TextColor3=muted, Font=Enum.Font.GothamBold}, top)
 new("Frame", {Position=UDim2.fromOffset(20,68),Size=UDim2.new(1,-40,0,1),
-    BackgroundColor3=Color3.fromRGB(64,43,46),BorderSizePixel=0}, panel)
+    BackgroundColor3=Color3.fromRGB(99,25,42),BorderSizePixel=0}, panel)
 local body=new("Frame", {Position=UDim2.fromOffset(20,88), Size=UDim2.new(1,-40,1,-108),
     BackgroundTransparency=1},panel)
 local nav=new("Frame", {Size=UDim2.new(0,174,1,0),BackgroundTransparency=1},body)
 local content=new("Frame", {Position=UDim2.fromOffset(194,0),Size=UDim2.new(1,-194,1,0),
-    BackgroundColor3=Color3.fromRGB(29,23,35),BorderSizePixel=0},body)
+    BackgroundColor3=Color3.fromRGB(47,16,25),BorderSizePixel=0},body)
 new("UICorner",{CornerRadius=UDim.new(0,12)},content)
 local function shape(parent,x,y,w,h,color,radius,rotation)
     local f=new("Frame",{Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
@@ -322,24 +410,84 @@ local function shape(parent,x,y,w,h,color,radius,rotation)
 end
 local tabs={}
 local function tab(name,y,mask)
-    local b=new("TextButton",{Text="",Size=UDim2.fromOffset(174,54),Position=UDim2.fromOffset(0,y),
-        BackgroundColor3=Color3.fromRGB(40,30,43),BorderSizePixel=0,AutoButtonColor=false},nav)
+    local b=new("TextButton",{Text="",Size=UDim2.fromOffset(174,48),Position=UDim2.fromOffset(0,y),
+        BackgroundColor3=Color3.fromRGB(62,21,34),BorderSizePixel=0,AutoButtonColor=false},nav)
     new("UICorner",{CornerRadius=UDim.new(0,10)},b)
-    local icon=new("Frame",{Position=UDim2.fromOffset(12,10),Size=UDim2.fromOffset(30,34),BackgroundTransparency=1},b)
-    if mask then
-        shape(icon,5,0,22,28,white,0.45)
-        shape(icon,10,16,12,18,white,0.45)
-        local ink=Color3.fromRGB(35,25,37)
-        shape(icon,8,7,6,8,ink,0.5,-20)
-        shape(icon,18,7,6,8,ink,0.5,20)
-        shape(icon,13,18,6,12,ink,0.5)
+    -- Tela de 32 x 32, centralizada no botao; silhuetas vetoriais independentes de fontes.
+    local icon=new("Frame",{Name="MenuIcon",AnchorPoint=Vector2.new(0,0.5),
+        Position=UDim2.new(0,11,0.5,0),Size=UDim2.fromOffset(32,32),
+        BackgroundTransparency=1,Active=false},b)
+    local ink=Color3.fromRGB(34,7,15)
+    local function polygon(points,color,layer)
+        -- Faixas inteiras sobrepostas: nao desaparecem com UIScale.
+        local low,high=32,0
+        for _,v in ipairs(points) do low=math.min(low,v[2]);high=math.max(high,v[2]) end
+        for y=math.floor(low),math.ceil(high)-1 do
+            local hits={}
+            for i,u in ipairs(points) do
+                local v=points[i%#points+1]
+                if (u[2]<=y+0.5 and v[2]>y+0.5) or (v[2]<=y+0.5 and u[2]>y+0.5) then
+                    hits[#hits+1]=u[1]+(y+0.5-u[2])*(v[1]-u[1])/(v[2]-u[2])
+                end
+            end
+            table.sort(hits)
+            for i=1,#hits-1,2 do
+                local left=math.floor(hits[i])
+                new("Frame",{Position=UDim2.fromOffset(left,y),
+                    Size=UDim2.fromOffset(math.max(2,math.ceil(hits[i+1])-left),2),
+                    BackgroundColor3=color,BorderSizePixel=0,ZIndex=layer or 1,Active=false},icon)
+            end
+        end
+    end
+    local function block(x,y,w,h,color,radius,layer)
+        local f=new("Frame",{Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
+            BackgroundColor3=color,BorderSizePixel=0,ZIndex=layer or 1,Active=false},icon)
+        if radius then new("UICorner",{CornerRadius=UDim.new(0,radius)},f) end
+        return f
+    end
+    if mask=="skull" then
+        polygon({{16,2},{10,3},{6,6},{4,11},{4,18},{7,22},{10,23},{10,29},
+            {22,29},{22,23},{25,22},{28,18},{28,11},{26,6},{22,3}},white,1)
+        block(7,11,7,8,ink,3.5,2)
+        block(18,11,7,8,ink,3.5,2)
+        polygon({{16,18},{13,23},{19,23}},ink,2)
+        block(13,25,1.3,4,ink,nil,2)
+        block(17.7,25,1.3,4,ink,nil,2)
+    elseif mask=="tools" then
+        -- Pecas solidas rotacionadas: contornos lisos sem faixas de pixels.
+        local hammer=new("Frame",{Size=UDim2.fromOffset(32,32),BackgroundTransparency=1,Rotation=-42,ZIndex=1},icon)
+        local function piece(parent,x,y,w,h,color,radius)
+            local f=new("Frame",{Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
+                BackgroundColor3=color,BorderSizePixel=0},parent)
+            if radius then new("UICorner",{CornerRadius=UDim.new(0,radius)},f) end
+            return f
+        end
+        piece(hammer,14,8,4,22,white,1)
+        piece(hammer,7,4,18,7,white,1)
+        piece(hammer,6,4,4,10,white,1)
+        local wrench=new("Frame",{Name="OpenEndWrench",Size=UDim2.fromOffset(32,32),BackgroundTransparency=1,Rotation=42,ZIndex=2},icon)
+        -- Chave de boca com duas mandibulas abertas e cabo estreito.
+        piece(wrench,12,10,8,20,ink,2)
+        piece(wrench,14,10,4,19,white,1)
+        piece(wrench,9,7,14,7,white,3)
+        piece(wrench,9,2,4,9,white,1)
+        piece(wrench,19,2,4,9,white,1)
+        piece(wrench,12,24,8,7,white,3)
+    elseif mask=="stars" then
+        local function sparkle(cx,cy,r)
+            polygon({{cx,cy-r},{cx+r*0.3,cy-r*0.3},{cx+r,cy},{cx+r*0.3,cy+r*0.3},
+                {cx,cy+r},{cx-r*0.3,cy+r*0.3},{cx-r,cy},{cx-r*0.3,cy-r*0.3}},white,1)
+        end
+        sparkle(12,17,10)
+        sparkle(25,7,5)
+        sparkle(25,25,4)
     else
-        shape(icon,10,0,12,10,white,0.2)
-        shape(icon,8,12,16,12,white,0.08)
-        shape(icon,0,12,6,13,white,0.08,8)
-        shape(icon,26,12,6,13,white,0.08,-8)
-        shape(icon,8,26,7,9,white,0.08)
-        shape(icon,17,26,7,9,white,0.08)
+        block(10,0,12,10,white,2)
+        block(8,12,16,11,white,1)
+        block(0,12,6,13,white,1)
+        block(26,12,6,13,white,1)
+        block(8,25,7,7,white,1)
+        block(17,25,7,7,white,1)
     end
     local caption=text(b,name,UDim2.fromOffset(53,0),UDim2.new(1,-56,1,0),14)
     caption.Font=Enum.Font.GothamBold
@@ -347,31 +495,65 @@ local function tab(name,y,mask)
     return b
 end
 local cloneTab=tab("CLONAGEM",0,false)
-local extraTab=tab("EXTRAS",66,true)
-text(nav,"HALLOWEEN EDITION\nSEOKJIN · 2026",UDim2.new(0,8,1,-48),UDim2.new(1,-8,0,48),11,muted)
+local extraTab=tab("EXTRAS",56,"skull")
+local commandsTab=tab("COMANDOS",112,"tools")
+local creditsTab=tab("CRÉDITOS",168,"stars")
+text(nav,"By: xLgfb_1357BRx",UDim2.new(0,8,1,-24),UDim2.new(1,-8,0,20),11,muted)
 local clonePage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1},content)
 local extraPage=new("ScrollingFrame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
     Visible=false,BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,410),ScrollBarThickness=4,
     ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},content)
-local function selectPage(extras)
-    clonePage.Visible=not extras
-    extraPage.Visible=extras
-    cloneTab.BackgroundColor3=not extras and Color3.fromRGB(108,52,28) or Color3.fromRGB(40,30,43)
-    extraTab.BackgroundColor3=extras and Color3.fromRGB(108,52,28) or Color3.fromRGB(40,30,43)
+local commandPage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false},content)
+local commandList=new("ScrollingFrame",{Position=UDim2.fromOffset(0,0),Size=UDim2.fromScale(1,1),
+    BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,805),ScrollBarThickness=4,
+    ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},commandPage)
+local commandStack=new("Frame",{Position=UDim2.fromOffset(0,100),Size=UDim2.new(1,0,0,705),
+    BackgroundTransparency=1},commandList)
+local creditsPage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false},content)
+local function selectPage(page)
+    clonePage.Visible=page=="clone"
+    extraPage.Visible=page=="extras"
+    commandPage.Visible=page=="commands"
+    creditsPage.Visible=page=="credits"
+    for name,button in pairs({clone=cloneTab,extras=extraTab,commands=commandsTab,credits=creditsTab}) do
+        button.BackgroundColor3=page==name and Color3.fromRGB(111,28,49) or Color3.fromRGB(62,21,34)
+    end
 end
-connect(cloneTab.Activated,function() selectPage(false) end)
-connect(extraTab.Activated,function() selectPage(true) end)
-selectPage(false)
+connect(cloneTab.Activated,function() selectPage("clone") end)
+connect(extraTab.Activated,function() selectPage("extras") end)
+connect(commandsTab.Activated,function() selectPage("commands") end)
+connect(creditsTab.Activated,function() selectPage("credits") end)
+text(creditsPage,"CRÉDITOS",UDim2.fromOffset(22,16),UDim2.new(1,-44,0,30),20).Font=Enum.Font.GothamBold
+do
+    local function creditCard(role,username,y)
+        local card=new("Frame",{Name="CreditCard",Position=UDim2.fromOffset(20,y),
+            Size=UDim2.new(1,-40,0,76),BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0},creditsPage)
+        new("UICorner",{CornerRadius=UDim.new(0,10)},card)
+        new("UIStroke",{Color=Color3.fromRGB(111,28,49),Thickness=1},card)
+        local accent=new("Frame",{Position=UDim2.fromOffset(0,13),Size=UDim2.fromOffset(3,50),
+            BackgroundColor3=orange,BorderSizePixel=0},card)
+        new("UICorner",{CornerRadius=UDim.new(0,2)},accent)
+        local caption=text(card,role..":",UDim2.fromOffset(16,10),UDim2.new(1,-32,0,18),11,orange)
+        caption.Font=Enum.Font.GothamBold
+        new("TextBox",{Name="Username",Text=username,TextEditable=false,ClearTextOnFocus=false,
+            MultiLine=false,BackgroundTransparency=1,Position=UDim2.fromOffset(16,32),
+            Size=UDim2.new(1,-32,0,30),Font=Enum.Font.GothamBold,TextSize=18,
+            TextColor3=white,TextXAlignment=Enum.TextXAlignment.Left},card)
+    end
+    creditCard("DESENVOLVEDOR","xLgfb_1357BRx",62)
+    creditCard("APOIADOR","sk7daozX78",152)
+end
+selectPage("clone")
 text(clonePage,"CLONAGEM",UDim2.fromOffset(22,18),UDim2.new(1,-44,0,28),20).Font=Enum.Font.GothamBold
 text(clonePage,"Mostre ou esconda o botão Clonar! nos jogadores próximos.",UDim2.fromOffset(22,53),UDim2.new(1,-44,0,42),14,muted)
 text(clonePage,"Avisos nos jogadores",UDim2.fromOffset(22,118),UDim2.new(1,-120,0,30),15)
 local toggle=new("TextButton",{Text="",Position=UDim2.new(1,-82,0,118),Size=UDim2.fromOffset(60,30),
-    BackgroundColor3=orange,BorderSizePixel=0,AutoButtonColor=false},clonePage)
+    BackgroundColor3=Color3.fromRGB(85,55,64),BorderSizePixel=0,AutoButtonColor=false},clonePage)
 new("UICorner",{CornerRadius=UDim.new(1,0)},toggle)
-local knob=new("Frame",{Position=UDim2.fromOffset(33,3),Size=UDim2.fromOffset(24,24),
+local knob=new("Frame",{Position=UDim2.fromOffset(3,3),Size=UDim2.fromOffset(24,24),
     BackgroundColor3=white,BorderSizePixel=0},toggle)
 new("UICorner",{CornerRadius=UDim.new(1,0)},knob)
-local state=text(clonePage,"ATIVADO",UDim2.fromOffset(22,161),UDim2.new(1,-44,0,23),12,orange)
+local state=text(clonePage,"DESATIVADO",UDim2.fromOffset(22,161),UDim2.new(1,-44,0,23),12,orange)
 local notice=text(clonePage,"Aproxime-se de um jogador para clonar.",UDim2.fromOffset(22,200),UDim2.new(1,-44,0,35),12,muted)
 connect(toggle.Activated,function()
     cloning=not cloning
@@ -379,14 +561,14 @@ connect(toggle.Activated,function()
         if p.Parent then p.Enabled=cloning else prompts[p]=nil end
     end
     state.Text=cloning and "ATIVADO" or "DESATIVADO"
-    Tween:Create(toggle,TweenInfo.new(0.18),{BackgroundColor3=cloning and orange or Color3.fromRGB(69,60,75)}):Play()
+    Tween:Create(toggle,TweenInfo.new(0.18),{BackgroundColor3=cloning and orange or Color3.fromRGB(85,55,64)}):Play()
     Tween:Create(knob,TweenInfo.new(0.18),{Position=UDim2.fromOffset(cloning and 33 or 3,3)}):Play()
 end)
 text(extraPage,"EXTRAS",UDim2.fromOffset(22,18),UDim2.new(1,-44,0,28),20).Font=Enum.Font.GothamBold
 text(extraPage,"Infinite Yield",UDim2.fromOffset(22,62),UDim2.new(1,-44,0,24),16)
 text(extraPage,"Abra o painel de comandos do arquivo anexado.",UDim2.fromOffset(22,96),UDim2.new(1,-44,0,38),14,muted)
 local run=new("TextButton",{Text="EXECUTAR INFINITE YIELD",Position=UDim2.fromOffset(22,150),
-    Size=UDim2.new(1,-44,0,44),BackgroundColor3=orange,TextColor3=Color3.fromRGB(28,17,21),
+    Size=UDim2.new(1,-44,0,44),BackgroundColor3=orange,TextColor3=Color3.fromRGB(34,7,15),
     Font=Enum.Font.GothamBold,TextSize=14,BorderSizePixel=0},extraPage)
 new("UICorner",{CornerRadius=UDim.new(0,8)},run)
 local result=text(extraPage,"Pronto para iniciar.",UDim2.fromOffset(22,202),UDim2.new(1,-44,0,37),12,muted)
@@ -13808,11 +13990,22 @@ end)]====]
     end)
 end)
 local collapsed=false
+local collapseTween
+local collapseSerial=0
 connect(minimize.Activated,function()
     collapsed=not collapsed
-    body.Visible=not collapsed
-    panel.Size=UDim2.fromOffset(700,collapsed and 74 or 360)
+    collapseSerial=collapseSerial+1
+    local serial=collapseSerial
+    if collapseTween then collapseTween:Cancel() end
+    body.Visible=false
     minimize.Text=collapsed and "+" or "−"
+    -- AnchorPoint.Y=0 preserva o topo mesmo depois de arrastar a janela.
+    collapseTween=Tween:Create(panel,TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),
+        {Size=UDim2.fromOffset(700,collapsed and 74 or 360)})
+    collapseTween:Play()
+    task.delay(0.28,function()
+        if alive and serial==collapseSerial then body.Visible=not collapsed end
+    end)
 end)
 local dragging, dragStart, panelStart, touch
 connect(top.InputBegan,function(input)
@@ -13864,7 +14057,7 @@ for _, target in ipairs(Players:GetPlayers()) do setup(target) end
 -- Segundo TXT: preservado literalmente, executado somente por clique.
 text(extraPage,"ZHX Hub",UDim2.fromOffset(22,259),UDim2.new(1,-44,0,24),16)
 local runExtra=new("TextButton",{Text="EXECUTAR ZHX HUB",Position=UDim2.fromOffset(22,296),
-    Size=UDim2.new(1,-44,0,44),BackgroundColor3=orange,TextColor3=Color3.fromRGB(28,17,21),
+    Size=UDim2.new(1,-44,0,44),BackgroundColor3=orange,TextColor3=Color3.fromRGB(34,7,15),
     Font=Enum.Font.GothamBold,TextSize=14,BorderSizePixel=0},extraPage)
 new("UICorner",{CornerRadius=UDim.new(0,8)},runExtra)
 local extraStatus=text(extraPage,"Pronto para iniciar.",UDim2.fromOffset(22,350),UDim2.new(1,-44,0,42),12,muted)
@@ -13901,7 +14094,7 @@ local closeButton=new("TextButton",{Text="X",Position=UDim2.new(1,-46,0,20),
     TextColor3=orange,Font=Enum.Font.GothamBold},top)
 local launcher=new("ImageButton",{Name="SeokCircularLauncher",AnchorPoint=Vector2.new(0,0.5),
     Position=UDim2.new(0,20,0.5,0),Size=UDim2.fromOffset(68,68),
-    BackgroundColor3=Color3.fromRGB(35,21,30),BorderSizePixel=0,Image="",
+    BackgroundColor3=Color3.fromRGB(47,16,25),BorderSizePixel=0,Image="",
     ScaleType=Enum.ScaleType.Crop,ClipsDescendants=true,AutoButtonColor=true,ZIndex=10},gui)
 new("UICorner",{CornerRadius=UDim.new(0.5,0)},launcher)
 new("UIStroke",{Color=orange,Thickness=2},launcher)
@@ -13986,7 +14179,7 @@ local function showNotice()
     if toast then toast:Destroy() end
     toast=new("Frame",{Name="ReopenNotice",AnchorPoint=Vector2.new(1,1),
         Position=UDim2.new(1,-20,1,-20),Size=UDim2.new(0.9,0,0,95),
-        BackgroundColor3=Color3.fromRGB(29,23,35),BorderSizePixel=0,ZIndex=100},gui)
+        BackgroundColor3=Color3.fromRGB(47,16,25),BorderSizePixel=0,ZIndex=100},gui)
     new("UISizeConstraint",{MaxSize=Vector2.new(360,95)},toast)
     new("UICorner",{CornerRadius=UDim.new(0,12)},toast)
     new("UIStroke",{Color=orange,Thickness=1},toast)
@@ -14023,10 +14216,10 @@ local function confirmClose()
     end
     panel.Visible=false
     local blocker=new("TextButton",{Text="",Size=UDim2.fromScale(1,1),
-        BackgroundColor3=Color3.fromRGB(10,7,14),BackgroundTransparency=0.4,
+        BackgroundColor3=Color3.fromRGB(20,5,10),BackgroundTransparency=0.4,
         BorderSizePixel=0,AutoButtonColor=false,Active=true,Modal=true,ZIndex=10},modalLayer)
     local dialog=new("Frame",{AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),
-        Size=UDim2.fromOffset(410,185),BackgroundColor3=Color3.fromRGB(29,23,35),
+        Size=UDim2.fromOffset(410,185),BackgroundColor3=Color3.fromRGB(47,16,25),
         BorderSizePixel=0,Active=true,ZIndex=20},modalLayer)
     new("UIScale",{Scale=scale.Scale},dialog)
     new("UICorner",{CornerRadius=UDim.new(0,14)},dialog)
@@ -14041,8 +14234,8 @@ local function confirmClose()
         new("UICorner",{CornerRadius=UDim.new(0,8)},b)
         return b
     end
-    local yes=choice("Sim",25,Color3.fromRGB(169,72,29))
-    local no=choice("Não",220,Color3.fromRGB(65,48,76))
+    local yes=choice("Sim",25,Color3.fromRGB(158,35,61))
+    local no=choice("Não",220,Color3.fromRGB(62,21,34))
     -- Conexoes locais sao descartadas junto da janela modal.
     no.Activated:Connect(dismissConfirmation)
     yes.Activated:Connect(function()
@@ -14059,6 +14252,8 @@ connect(Input.InputBegan,function(input,processed)
     if processed or Input:GetFocusedTextBox() then return end
     if input.KeyCode==Enum.KeyCode.K and closed then
         closed=false
+        collapseSerial=collapseSerial+1
+        if collapseTween then collapseTween:Cancel() end
         collapsed=false
         body.Visible=true
         panel.Size=UDim2.fromOffset(700,360)
@@ -14068,3 +14263,481 @@ connect(Input.InputBegan,function(input,processed)
         if toast then toast:Destroy(); toast=nil end
     end
 end)
+
+
+-- Auto restart opcional: reabre o hub em teleports, nao ativa a clonagem nem os extras.
+local AUTO_SOURCE_FILE="seok_halloween_autorestart.lua"
+local AUTO_STATE_FILE="seok_halloween_autorestart.enabled"
+local autoEnabled=false
+local queueTeleport=queue_on_teleport or queueonteleport
+    or (type(syn)=="table" and syn.queue_on_teleport)
+    or (type(fluxus)=="table" and fluxus.queue_on_teleport)
+local canAuto=type(queueTeleport)=="function" and type(writefile)=="function"
+    and type(readfile)=="function" and type(SELF_SOURCE)=="string"
+local sharedEnv=(type(getgenv)=="function" and getgenv()) or _G
+local autoPanel=new("Frame",{Name="AutoRestartPanel",Visible=false,AnchorPoint=Vector2.new(0.5,1),
+    Position=UDim2.new(0.5,0,0,-12),Size=UDim2.fromOffset(430,104),
+    BackgroundColor3=Color3.fromRGB(47,16,25),BorderSizePixel=0},panel)
+new("UICorner",{CornerRadius=UDim.new(0,12)},autoPanel)
+new("UIStroke",{Color=orange,Thickness=1},autoPanel)
+text(autoPanel,"AUTO RELOAD",UDim2.fromOffset(18,12),UDim2.new(1,-110,0,25),16,orange).Font=Enum.Font.GothamBold
+text(autoPanel,"Reabrir o hub ao trocar de servidor.",UDim2.fromOffset(18,39),UDim2.new(1,-110,0,23),12,muted)
+local autoStatus=text(autoPanel,"DESATIVADO",UDim2.fromOffset(18,70),UDim2.new(1,-36,0,22),11,muted)
+local autoToggle=new("TextButton",{Name="AutoRestartToggle",Text="",Position=UDim2.new(1,-78,0,24),
+    Size=UDim2.fromOffset(60,30),BackgroundColor3=Color3.fromRGB(85,55,64),
+    BorderSizePixel=0,AutoButtonColor=false},autoPanel)
+new("UICorner",{CornerRadius=UDim.new(1,0)},autoToggle)
+local autoKnob=new("Frame",{Position=UDim2.fromOffset(3,3),Size=UDim2.fromOffset(24,24),
+    BackgroundColor3=white,BorderSizePixel=0},autoToggle)
+new("UICorner",{CornerRadius=UDim.new(1,0)},autoKnob)
+local queuedCode=[==[
+-- A escolha e conferida no destino, permitindo desligar apos enfileirar.
+local ok,err=pcall(function()
+    if type(readfile)~="function" or type(loadstring)~="function" then return end
+    local enabled,state=pcall(readfile,"seok_halloween_autorestart.enabled")
+    if not enabled or state~="1" then return end
+    local source=readfile("seok_halloween_autorestart.lua")
+    local run,compileError=loadstring(source,"SEOK_AutoRestart")
+    if not run then error(compileError) end
+    run(source)
+end)
+if not ok then warn("[SEOK AUTO RESTART] "..tostring(err)) end
+]==]
+local function paintAuto()
+    Tween:Create(autoToggle,TweenInfo.new(0.18),{BackgroundColor3=autoEnabled and orange or Color3.fromRGB(85,55,64)}):Play()
+    Tween:Create(autoKnob,TweenInfo.new(0.18),{Position=UDim2.fromOffset(autoEnabled and 33 or 3,3)}):Play()
+    autoStatus.Text=autoEnabled and "ATIVADO · aguardando a próxima troca de servidor" or "DESATIVADO"
+end
+local function setAuto(enabled)
+    if not canAuto then
+        autoStatus.Text="Auto reload indisponível neste executor."
+        return
+    end
+    local ok,err=pcall(function()
+        if enabled then
+            writefile(AUTO_SOURCE_FILE,SELF_SOURCE)
+            writefile(AUTO_STATE_FILE,"1")
+            -- Uma unica fila por servidor, mesmo se o hub for reexecutado.
+            if not sharedEnv.__SEOK_AUTO_QUEUED then
+                queueTeleport(queuedCode)
+                sharedEnv.__SEOK_AUTO_QUEUED=true
+            end
+        else
+            writefile(AUTO_STATE_FILE,"0")
+        end
+    end)
+    if ok then
+        autoEnabled=enabled
+        paintAuto()
+    else
+        if enabled then pcall(function() writefile(AUTO_STATE_FILE,"0") end) end
+        autoStatus.Text="Falha ao configurar auto reload. Veja o console."
+        warn("[SEOK AUTO RESTART] "..tostring(err))
+    end
+end
+connect(autoToggle.Activated,function() setAuto(not autoEnabled) end)
+if canAuto then
+    local ok,state=pcall(readfile,AUTO_STATE_FILE)
+    if ok and state=="1" then setAuto(true) end
+else
+    autoStatus.Text="Auto reload indisponível neste executor."
+end
+
+-- Animacoes de entrada. O painel temporario nao altera a preferencia salva.
+local function collectFade(root,exclude)
+    local items={root}
+    for _,obj in ipairs(root:GetDescendants()) do
+        if obj~=exclude and (not exclude or not obj:IsDescendantOf(exclude)) then
+            items[#items+1]=obj
+        end
+    end
+    local records={}
+    for _,obj in ipairs(items) do
+        local props={}
+        if obj:IsA("GuiObject") then props.BackgroundTransparency=obj.BackgroundTransparency end
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+            props.TextTransparency=obj.TextTransparency
+            props.TextStrokeTransparency=obj.TextStrokeTransparency
+        end
+        if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then props.ImageTransparency=obj.ImageTransparency end
+        if obj:IsA("UIStroke") then props.Transparency=obj.Transparency end
+        if next(props) then records[#records+1]={object=obj,props=props} end
+    end
+    return records
+end
+local function fade(records,show,duration)
+    for _,record in ipairs(records) do
+        if record.object.Parent then
+            local target={}
+            for property,value in pairs(record.props) do target[property]=show and value or 1 end
+            Tween:Create(record.object,TweenInfo.new(duration,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),target):Play()
+        end
+    end
+end
+
+-- Ornamento vetorial do tema, limitado ao canto superior esquerdo.
+local themeArt=new("Frame",{Name="ThemeDecoration",Position=UDim2.fromOffset(8,-17),
+    Size=UDim2.fromOffset(74, 70),BackgroundTransparency=1,Active=false},panel)
+local function artRect(x,y,w,h,color,round,rotation)
+    local o=new("Frame",{Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
+        BorderSizePixel=0,BackgroundColor3=color,Rotation=rotation or 0,Active=false},themeArt)
+    if round then new("UICorner",{CornerRadius=UDim.new(round,0)},o) end
+    return o
+end
+-- Poligonos preenchidos em linhas finas: contorno, pelagem e interior.
+local function earPolygon(points,color)
+    local low,high=1000,-1000
+    for _,p in ipairs(points) do low=math.min(low,p[2]);high=math.max(high,p[2]) end
+    for y=math.floor(low),math.ceil(high)-1 do
+        local cuts={}
+        local scan=y+0.5
+        for i,a in ipairs(points) do
+            local b=points[i%#points+1]
+            if (a[2]<=scan and b[2]>scan) or (b[2]<=scan and a[2]>scan) then
+                cuts[#cuts+1]=a[1]+(scan-a[2])*(b[1]-a[1])/(b[2]-a[2])
+            end
+        end
+        table.sort(cuts)
+        for i=1,#cuts-1,2 do artRect(cuts[i],y,cuts[i+1]-cuts[i],1.1,color) end
+    end
+end
+for _,mirror in ipairs({false,true}) do
+    local function outline(points,color)
+        local result={}
+        for _,p in ipairs(points) do result[#result+1]={mirror and 74-p[1] or p[1],p[2]} end
+        earPolygon(result,color)
+    end
+    outline({{3,45},{1,3},{5,0},{29,19},{36,44},{29,50}},Color3.fromRGB(64,6,22))
+    outline({{6,43},{4,5},{9,8},{27,22},{32,43},{27,46}},Color3.fromRGB(183,27,62))
+    outline({{7,9},{12,14},{26,24},{28,35},{20,30},{12,36}},Color3.fromRGB(245,114,146))
+    outline({{6,12},{9,29},{13,41},{7,43}},Color3.fromRGB(225,47,88))
+    outline({{12,38},{17,34},{18,41},{23,36},{24,44},{30,42},{27,47}},Color3.fromRGB(134,15,43))
+end
+
+-- Adaptacao dos comandos solicitados do Infinite Yield enviado pelo usuario.
+-- Estado local separado do painel completo; desligar restaura os valores capturados.
+do
+    local RunService=game:GetService("RunService")
+    local TeleportService=game:GetService("TeleportService")
+    local me=Players.LocalPlayer
+    local active,buttons={},{}
+    local savedSpeed,speedHumanoid
+    local commandStatus=text(commandStack,"WASD: voar · E/Q: subir/descer",UDim2.fromOffset(20,48),UDim2.new(1,-40,0,42),12,muted)
+    text(commandStack,"COMANDOS",UDim2.fromOffset(20,16),UDim2.new(1,-40,0,28),20).Font=Enum.Font.GothamBold
+    local function character()
+        local char=me.Character
+        local hum=char and char:FindFirstChildOfClass("Humanoid")
+        local root=char and char:FindFirstChild("HumanoidRootPart")
+        assert(hum and root and hum.Health>0,"Aguarde seu personagem renascer.")
+        return char,hum,root
+    end
+    local function refresh()
+        for name,b in pairs(buttons) do b.BackgroundColor3=active[name] and Color3.fromRGB(146,36,62) or Color3.fromRGB(62,21,34) end
+    end
+    local function stopMode(name)
+        local stop=active[name]
+        active[name]=nil
+        if stop then pcall(stop) end
+        refresh()
+    end
+    local function release(list)
+        for _,c in ipairs(list) do c:Disconnect() end
+    end
+    local actions={}
+    actions.unfly=function() stopMode("fly") end
+    actions.unfloat=function() stopMode("float") end
+    actions.clip=function() stopMode("noclip") end
+    actions.unswim=function() stopMode("swim") end
+    actions.fly=function()
+        local char,hum,root=character()
+        stopMode("fly");stopMode("swim");stopMode("float")
+        local platform,rotate=hum.PlatformStand,hum.AutoRotate
+        local gyro=new("BodyGyro",{Name="SeokFlyGyro",P=90000,MaxTorque=Vector3.new(9e9,9e9,9e9),CFrame=root.CFrame},root)
+        local velocity=new("BodyVelocity",{Name="SeokFlyVelocity",MaxForce=Vector3.new(9e9,9e9,9e9),Velocity=Vector3.new()},root)
+        local links={}
+        active.fly=function()
+            release(links);gyro:Destroy();velocity:Destroy()
+            if hum.Parent then hum.PlatformStand=platform;hum.AutoRotate=rotate end
+        end
+        links[#links+1]=RunService.Heartbeat:Connect(function()
+            if me.Character~=char or not root.Parent then stopMode("fly");return end
+            local camera=workspace.CurrentCamera
+            if not camera then return end
+            local move=Vector3.new()
+            if not Input:GetFocusedTextBox() then
+                local function down(key) return Input:IsKeyDown(key) and 1 or 0 end
+                local forward=down(Enum.KeyCode.W)-down(Enum.KeyCode.S)
+                local side=down(Enum.KeyCode.D)-down(Enum.KeyCode.A)
+                local vertical=down(Enum.KeyCode.E)-down(Enum.KeyCode.Q)
+                move=camera.CFrame.LookVector*forward+camera.CFrame.RightVector*side+Vector3.new(0,vertical,0)
+                if Input.TouchEnabled and move.Magnitude<0.01 then move=hum.MoveDirection end
+            end
+            if move.Magnitude>1 then move=move.Unit end
+            hum.PlatformStand=true;hum.AutoRotate=false
+            velocity.Velocity=move*50
+            gyro.CFrame=camera.CFrame
+        end)
+    end
+    actions.float=function()
+        local char,hum,root=character()
+        stopMode("float");stopMode("fly");stopMode("swim")
+        local offset=-3.1
+        local keys={}
+        local pad=new("Part",{Name="SeokFloatPad",Transparency=1,Size=Vector3.new(2,0.2,1.5),
+            Anchored=true,CanCollide=true,CanTouch=false,CanQuery=false,CFrame=root.CFrame*CFrame.new(0,offset,0)},char)
+        local links={}
+        active.float=function() release(links);pad:Destroy() end
+        links[#links+1]=Input.InputBegan:Connect(function(input,processed)
+            if not processed and not Input:GetFocusedTextBox() then keys[input.KeyCode]=true end
+        end)
+        links[#links+1]=Input.InputEnded:Connect(function(input) keys[input.KeyCode]=nil end)
+        links[#links+1]=RunService.PreAnimation:Connect(function()
+            if me.Character~=char or not root.Parent then stopMode("float");return end
+            local delta=(keys[Enum.KeyCode.E] and 1.5 or 0)-(keys[Enum.KeyCode.Q] and 0.5 or 0)
+            pad.CFrame=root.CFrame*CFrame.new(0,offset+delta,0)
+        end)
+    end
+    actions.noclip=function()
+        local char=character()
+        stopMode("noclip")
+        local changed={}
+        local connection=RunService.Stepped:Connect(function()
+            if me.Character~=char then stopMode("noclip");return end
+            for _,part in ipairs(char:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name~="SeokFloatPad" then
+                    if changed[part]==nil then changed[part]=part.CanCollide end
+                    part.CanCollide=false
+                end
+            end
+        end)
+        active.noclip=function()
+            connection:Disconnect()
+            for part,value in pairs(changed) do if part.Parent then part.CanCollide=value end end
+        end
+    end
+    actions.swim=function()
+        local char,hum,root=character()
+        stopMode("swim");stopMode("fly");stopMode("float")
+        local gravity=workspace.Gravity
+        local states={}
+        local links={}
+        active.swim=function()
+            release(links);workspace.Gravity=gravity
+            if hum.Parent then
+                for state,value in pairs(states) do hum:SetStateEnabled(state,value) end
+                if hum.Health>0 then hum:ChangeState(Enum.HumanoidStateType.GettingUp) end
+            end
+        end
+        for _,state in ipairs(Enum.HumanoidStateType:GetEnumItems()) do
+            if state~=Enum.HumanoidStateType.None and state~=Enum.HumanoidStateType.Dead then
+                states[state]=hum:GetStateEnabled(state)
+                hum:SetStateEnabled(state,state==Enum.HumanoidStateType.Swimming)
+            end
+        end
+        workspace.Gravity=0
+        hum:ChangeState(Enum.HumanoidStateType.Swimming)
+        links[#links+1]=RunService.Heartbeat:Connect(function()
+            if me.Character~=char or not root.Parent then stopMode("swim");return end
+            if hum.MoveDirection.Magnitude<0.01 and not Input:IsKeyDown(Enum.KeyCode.Space) then
+                root.AssemblyLinearVelocity=Vector3.new()
+            end
+        end)
+    end
+    actions.speed=function(value)
+        local number=tonumber(value)
+        assert(number and number==number and number>=0 and number<=500,"Digite uma velocidade entre 0 e 500.")
+        local _,hum=character()
+        if speedHumanoid~=hum then speedHumanoid=hum;savedSpeed=hum.WalkSpeed end
+        hum.WalkSpeed=number
+    end
+    local selectedTarget
+    -- Mesmo deslocamento do goto do Infinite Yield: tres studs diante do alvo.
+    actions["goto"]=function()
+        local target=selectedTarget
+        assert(target and target.Parent==Players,"Escolha um jogador da lista.")
+        local targetChar=target.Character
+        local targetHum=targetChar and targetChar:FindFirstChildOfClass("Humanoid")
+        assert(targetHum and targetHum.Health>0 and targetChar:FindFirstChild("HumanoidRootPart"),
+            "O personagem escolhido ainda nao esta disponivel.")
+        local char,hum,root=character()
+        if hum.SeatPart then hum.Sit=false;task.wait(0.1) end
+        assert(me.Character==char and hum.Health>0 and target.Parent==Players and target.Character==targetChar,
+            "O personagem mudou. Tente novamente.")
+        local pivot=targetChar:GetPivot()
+        char:PivotTo(CFrame.new(pivot.Position+pivot.LookVector*3,pivot.Position))
+        root.AssemblyLinearVelocity=Vector3.zero
+        root.AssemblyAngularVelocity=Vector3.zero
+    end
+    actions.fov=function(value)
+        local number=tonumber(value)
+        assert(number and number==number and math.abs(number)<math.huge,"Digite um FOV de 30 a 120.")
+        local camera=workspace.CurrentCamera
+        assert(camera,"A camera ainda nao esta disponivel.")
+        camera.FieldOfView=math.clamp(number,30,120)
+    end
+    local rejoining=false
+    actions.rejoin=function()
+        if rejoining then return end
+        rejoining=true
+        local ok,err=pcall(function()
+            if #Players:GetPlayers()>1 and game.JobId~="" then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId,game.JobId,me)
+            else
+                TeleportService:Teleport(game.PlaceId,me)
+            end
+        end)
+        if not ok then rejoining=false;error(err) end
+        task.delay(8,function() rejoining=false end)
+    end
+    connect(TeleportService.TeleportInitFailed,function(who)
+        if who==me then rejoining=false;commandStatus.Text="O rejoin falhou. Tente novamente." end
+    end)
+    commandCleanup=function()
+        for _,name in ipairs({"fly","float","noclip","swim"}) do stopMode(name) end
+        if speedHumanoid and speedHumanoid.Parent and savedSpeed~=nil then speedHumanoid.WalkSpeed=savedSpeed end
+        speedHumanoid=nil;savedSpeed=nil
+    end
+    local diedConnection
+    local function bindDeath(char)
+        if diedConnection then diedConnection:Disconnect();diedConnection=nil end
+        local hum=char:WaitForChild("Humanoid",10)
+        if alive and me.Character==char and hum then
+            diedConnection=hum.Died:Connect(commandCleanup)
+        end
+    end
+    connect(me.CharacterRemoving,function()
+        commandCleanup()
+        if diedConnection then diedConnection:Disconnect();diedConnection=nil end
+    end)
+    connect(me.CharacterAdded,function(char)
+        commandCleanup();task.spawn(bindDeath,char)
+        commandStatus.Text="Personagem novo: comandos desligados."
+    end)
+    if me.Character then task.spawn(bindDeath,me.Character) end
+    local baseCleanup=commandCleanup
+    commandCleanup=function()
+        baseCleanup()
+        if not alive and diedConnection then diedConnection:Disconnect();diedConnection=nil end
+    end
+    local function execute(name,arg)
+        local ok,err=pcall(actions[name],arg)
+        if not ok then
+            stopMode(name)
+            commandStatus.Text=tostring(err):gsub("^.-:%d+: ","")
+        else
+            commandStatus.Text=name..(arg and " "..tostring(arg) or "").." executado."
+        end
+        refresh()
+    end
+    local function button(caption,x,y,w,callback)
+        local b=new("TextButton",{Text=caption,Position=UDim2.new(x,20,y,0),Size=UDim2.new(w,-30,0,40),
+            BackgroundColor3=Color3.fromRGB(62,21,34),TextColor3=white,BorderSizePixel=0,
+            Font=Enum.Font.GothamBold,TextSize=13},commandStack)
+        b.Position=UDim2.new(x,20,0,y)
+        new("UICorner",{CornerRadius=UDim.new(0,8)},b)
+        connect(b.Activated,callback)
+        return b
+    end
+    -- Goto como primeiro item, rolando junto dos demais comandos.
+    text(commandList,"GOTO  ·  TELEPORTE",UDim2.fromOffset(20,8),UDim2.new(1,-40,0,24),14).Font=Enum.Font.GothamBold
+    local function gotoRowButton(label,pos,size)
+        local b=new("TextButton",{Text=label,Position=pos,Size=size,BackgroundColor3=Color3.fromRGB(62,21,34),
+            BorderSizePixel=0,TextColor3=white,TextSize=12,Font=Enum.Font.GothamBold,TextTruncate=Enum.TextTruncate.AtEnd},commandList)
+        new("UICorner",{CornerRadius=UDim.new(0,8)},b)
+        return b
+    end
+    local targetButton=gotoRowButton("Escolher jogador  +",UDim2.fromOffset(20,39),UDim2.new(1,-173,0,42))
+    local gotoButton=gotoRowButton("TELEPORTAR",UDim2.new(1,-143,0,39),UDim2.fromOffset(123,42))
+    local picker=new("ScrollingFrame",{Name="PlayerPicker",Visible=false,Position=UDim2.fromOffset(20,85),
+        Size=UDim2.new(1,-40,0,148),BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0,
+        ZIndex=20,ScrollBarThickness=4,ScrollBarImageColor3=orange,CanvasSize=UDim2.fromOffset(0,0)},commandList)
+    new("UICorner",{CornerRadius=UDim.new(0,8)},picker)
+    local function playerLabel(p) return "@"..p.Name.." ("..p.DisplayName..")" end
+    local function refreshPlayers(excluded)
+        for _,obj in ipairs(picker:GetChildren()) do if obj:IsA("GuiObject") then obj:Destroy() end end
+        local list={}
+        for _,p in ipairs(Players:GetPlayers()) do if p~=me and p~=excluded then list[#list+1]=p end end
+        table.sort(list,function(a,b) return a.Name:lower()<b.Name:lower() end)
+        for i,p in ipairs(list) do
+            local row=new("TextButton",{Text=playerLabel(p),Position=UDim2.fromOffset(8,6+(i-1)*38),
+                Size=UDim2.new(1,-20,0,34),BackgroundColor3=Color3.fromRGB(62,21,34),BorderSizePixel=0,
+                TextColor3=white,Font=Enum.Font.GothamMedium,TextSize=12,TextWrapped=true,ZIndex=21},picker)
+            new("UICorner",{CornerRadius=UDim.new(0,6)},row)
+            row.Activated:Connect(function()
+                if p.Parent~=Players then refreshPlayers(p);return end
+                selectedTarget=p;targetButton.Text=playerLabel(p);picker.Visible=false
+            end)
+        end
+        if #list==0 then
+            local empty=text(picker,"Nenhum outro jogador no servidor.",UDim2.fromOffset(10,8),UDim2.new(1,-20,0,45),12,muted)
+            empty.ZIndex=21
+        end
+        picker.CanvasSize=UDim2.fromOffset(0,math.max(60,#list*38+12))
+    end
+    connect(targetButton.Activated,function()
+        picker.Visible=not picker.Visible
+        if picker.Visible then refreshPlayers() end
+    end)
+    connect(gotoButton.Activated,function() picker.Visible=false;execute("goto") end)
+    connect(Players.PlayerAdded,function() if picker.Visible then refreshPlayers() end end)
+    connect(Players.PlayerRemoving,function(p)
+        if selectedTarget==p then selectedTarget=nil;targetButton.Text="Escolher jogador  +" end
+        if picker.Visible then refreshPlayers(p) end
+    end)
+    connect(commandPage:GetPropertyChangedSignal("Visible"),function()
+        if not commandPage.Visible then picker.Visible=false end
+    end)
+    for i,pair in ipairs({{"fly","unfly"},{"float","unfloat"},{"noclip","clip"},{"swim","unswim"}}) do
+        local on,off=pair[1],pair[2]
+        buttons[on]=button(on:upper(),0,99+(i-1)*51,0.5,function() execute(on) end)
+        button(off:upper(),0.5,99+(i-1)*51,0.5,function() execute(off) end)
+    end
+    text(commandStack,"SPEED",UDim2.fromOffset(20,363),UDim2.fromOffset(100,25),13)
+    local speedBox=new("TextBox",{Text="16",PlaceholderText="0 a 500",ClearTextOnFocus=false,
+        Position=UDim2.fromOffset(20,396),Size=UDim2.new(0.5,-30,0,40),
+        BackgroundColor3=Color3.fromRGB(32,10,17),TextColor3=white,BorderSizePixel=0,
+        Font=Enum.Font.GothamMedium,TextSize=15},commandStack)
+    new("UICorner",{CornerRadius=UDim.new(0,8)},speedBox)
+    button("APLICAR SPEED",0.5,396,0.5,function() execute("speed",speedBox.Text) end)
+    button("REJOIN",0,460,1,function() execute("rejoin") end)
+    text(commandStack,"FOV  ·  30 a 120",UDim2.fromOffset(20,518),UDim2.new(1,-40,0,25),13)
+    local fovBox=new("TextBox",{Text="70",PlaceholderText="30 a 120",ClearTextOnFocus=false,
+        Position=UDim2.fromOffset(20,550),Size=UDim2.new(0.5,-30,0,40),
+        BackgroundColor3=Color3.fromRGB(32,10,17),TextColor3=white,BorderSizePixel=0,
+        Font=Enum.Font.GothamMedium,TextSize=15},commandStack)
+    new("UICorner",{CornerRadius=UDim.new(0,8)},fovBox)
+    local function applyFov()
+        local value=tonumber(fovBox.Text)
+        if value and value==value and math.abs(value)<math.huge then fovBox.Text=tostring(math.clamp(value,30,120)) end
+        execute("fov",fovBox.Text)
+    end
+    button("APLICAR FOV",0.5,550,0.5,applyFov)
+    connect(fovBox.FocusLost,function(enter) if enter then applyFov() end end)
+    button("PADRAO 70",0,602,1,function() fovBox.Text="70";applyFov() end)
+    text(commandStack,"FOV so muda ao aplicar. Sua configuracao inicial e preservada.",UDim2.fromOffset(20,648),UDim2.new(1,-40,0,45),11,muted)
+end
+
+local introRecords=collectFade(panel,autoPanel)
+for _,record in ipairs(introRecords) do
+    for property in pairs(record.props) do record.object[property]=1 end
+end
+panel.Visible=true
+fade(introRecords,true,0.45)
+task.delay(1,function()
+    if not alive or not autoPanel.Parent then return end
+    autoPanel.Visible=true
+    -- Sete segundos contados a partir do aparecimento do AUTO RELOAD.
+    task.delay(7,function()
+        if not alive or not autoPanel.Parent then return end
+        -- Captura o visual atual para respeitar mudancas no interruptor.
+        fade(collectFade(autoPanel),false,0.45)
+        task.delay(0.45,function()
+            if alive and autoPanel.Parent then autoPanel.Visible=false end
+        end)
+    end)
+end)
+
+]========]
+local run,err=loadstring(source,"SEOK_HalloweenHub")
+if not run then error(err) end
+run(source)
