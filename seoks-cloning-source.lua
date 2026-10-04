@@ -66,7 +66,7 @@ do
     end
 end
 
--- SEOK Halloween 1.0. Substitui a versao anterior; execute este arquivo inteiro.
+-- SEOK HUB 1.1. Substitui a versao anterior; execute este arquivo inteiro.
 -- EXTRAS contem o TXT anexado e so o executa quando voce clicar.
 do
     local pg = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
@@ -385,7 +385,7 @@ local function text(parent, value, pos, size, fontSize, color)
         TextXAlignment=Enum.TextXAlignment.Left, TextWrapped=true}, parent)
 end
 local top = new("Frame", {Size=UDim2.new(1,0,0,68), BackgroundTransparency=1, Active=true}, panel)
-local heading=text(top, "◆ SEOK'S CLONING HUB — Ver. 1.0",
+local heading=text(top, "◆ SEOK'S CLONING HUB — Ver. 1.1",
     UDim2.fromOffset(89,14), UDim2.new(1,-185,0,38), 17)
 heading.Font=Enum.Font.GothamBold
 heading.TextScaled=true
@@ -508,7 +508,9 @@ local commandList=new("ScrollingFrame",{Position=UDim2.fromOffset(0,0),Size=UDim
     ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},commandPage)
 local commandStack=new("Frame",{Position=UDim2.fromOffset(0,100),Size=UDim2.new(1,0,0,705),
     BackgroundTransparency=1},commandList)
-local creditsPage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false},content)
+local creditsPage=new("ScrollingFrame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false,
+    BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,520),ScrollBarThickness=4,
+    ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},content)
 local function selectPage(page)
     clonePage.Visible=page=="clone"
     extraPage.Visible=page=="extras"
@@ -540,7 +542,10 @@ do
             TextColor3=white,TextXAlignment=Enum.TextXAlignment.Left},card)
     end
     creditCard("DESENVOLVEDOR","xLgfb_1357BRx",62)
-    creditCard("APOIADOR","sk7daozX78",152)
+    creditCard("APOIADOR","telezuri",152)
+    creditCard("APOIADOR","VZ_SUBMUNDO",242)
+    creditCard("APOIADOR","Yyacpon",332)
+    creditCard("PARTICIPANTE ESPECIAL","poopmau3",422)
 end
 selectPage("clone")
 text(clonePage,"CLONAGEM",UDim2.fromOffset(22,18),UDim2.new(1,-44,0,28),20).Font=Enum.Font.GothamBold
@@ -14574,6 +14579,159 @@ do
         assert(camera,"A camera ainda nao esta disponivel.")
         camera.FieldOfView=math.clamp(number,30,120)
     end
+    -- v1.1: 30 comandos adaptados das respectivas funcoes addcmd da source IY incorporada.
+    -- Valores anteriores sao capturados apenas quando um comando altera a propriedade.
+    local Lighting=game:GetService("Lighting")
+    local extraSaved={}
+    local function remember(object,key)
+        local values=extraSaved[object]
+        if not values then values={};extraSaved[object]=values end
+        if values[key]==nil then values[key]=object[key] end
+    end
+    local function change(object,key,value)
+        remember(object,key);object[key]=value
+    end
+    local function restoreObject(object)
+        local values=extraSaved[object]
+        if values then
+            for key,value in pairs(values) do pcall(function() object[key]=value end) end
+            extraSaved[object]=nil
+        end
+    end
+    local function number(value,minimum,maximum)
+        local n=tonumber(value)
+        assert(n and n==n and math.abs(n)<math.huge,"Digite um numero valido.")
+        assert(n>=minimum and n<=maximum,"Use um valor de "..minimum.." a "..maximum..".")
+        return n
+    end
+    actions.jpower=function(value)
+        local _,hum=character()
+        change(hum,hum.UseJumpPower and "JumpPower" or "JumpHeight",number(value,0,500))
+    end
+    actions.maxslopeangle=function(value) local _,hum=character();change(hum,"MaxSlopeAngle",number(value,0,89)) end
+    actions.gravity=function(value)
+        local n=number(value,0,1000)
+        stopMode("swim");change(workspace,"Gravity",n)
+    end
+    actions.hipheight=function(value) local _,hum=character();change(hum,"HipHeight",number(value,-10,100)) end
+    actions.sit=function() local _,hum=character();change(hum,"Sit",true) end
+    actions.jump=function() local _,hum=character();hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+    actions.infjump=function()
+        local char,hum=character()
+        stopMode("infjump")
+        local last=0
+        local link=Input.JumpRequest:Connect(function()
+            if alive and me.Character==char and hum.Health>0 and not Input:GetFocusedTextBox() and os.clock()-last>0.08 then
+                last=os.clock();hum:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end)
+        active.infjump=function() link:Disconnect() end
+    end
+    actions.uninfjump=function() stopMode("infjump") end
+    local function brighten()
+        change(Lighting,"Brightness",2);change(Lighting,"ClockTime",14)
+        change(Lighting,"FogEnd",100000);change(Lighting,"GlobalShadows",false)
+        change(Lighting,"OutdoorAmbient",Color3.fromRGB(128,128,128))
+    end
+    actions.fullbright=brighten
+    actions.loopfullbright=function()
+        stopMode("loopfullbright");brighten()
+        local link=RunService.RenderStepped:Connect(brighten)
+        active.loopfullbright=function() link:Disconnect() end
+    end
+    actions.unloopfullbright=function() stopMode("loopfullbright") end
+    actions.day=function() stopMode("loopfullbright");change(Lighting,"ClockTime",14) end
+    actions.night=function() stopMode("loopfullbright");change(Lighting,"ClockTime",0) end
+    actions.nofog=function()
+        change(Lighting,"FogEnd",100000)
+        -- Preserva Atmosphere para permitir restauracao, em vez de destruir como no IY.
+        for _,obj in ipairs(Lighting:GetDescendants()) do
+            if obj:IsA("Atmosphere") then change(obj,"Density",0);change(obj,"Haze",0) end
+        end
+    end
+    actions.brightness=function(value)
+        local n=number(value,0,10);stopMode("loopfullbright");change(Lighting,"Brightness",n)
+    end
+    actions.globalshadows=function() stopMode("loopfullbright");change(Lighting,"GlobalShadows",true) end
+    actions.unglobalshadows=function() stopMode("loopfullbright");change(Lighting,"GlobalShadows",false) end
+    actions.restorelighting=function()
+        stopMode("loopfullbright");restoreObject(Lighting)
+        local objects={}
+        for obj in pairs(extraSaved) do if obj:IsA("Atmosphere") then objects[#objects+1]=obj end end
+        for _,obj in ipairs(objects) do restoreObject(obj) end
+    end
+    actions.stun=function() local _,hum=character();change(hum,"PlatformStand",true) end
+    actions.unstun=function() local _,hum=character();change(hum,"PlatformStand",false) end
+    actions.norotate=function() local _,hum=character();change(hum,"AutoRotate",false) end
+    actions.unnorotate=function() local _,hum=character();change(hum,"AutoRotate",true) end
+    actions.anchor=function() local _,_,root=character();change(root,"Anchored",true) end
+    actions.unanchor=function() local _,_,root=character();change(root,"Anchored",false) end
+    actions.spin=function(value)
+        local speed=number(value,-100,100)
+        local _,_,root=character();stopMode("spin")
+        local spin=Instance.new("BodyAngularVelocity")
+        spin.Name="SeokSpinning";spin.MaxTorque=Vector3.new(0,math.huge,0)
+        spin.AngularVelocity=Vector3.new(0,speed,0);spin.Parent=root
+        active.spin=function()
+            spin:Destroy()
+            if root.Parent then root.AssemblyAngularVelocity=Vector3.zero end
+        end
+    end
+    actions.unspin=function() stopMode("spin") end
+    actions.view=function()
+        local target=selectedTarget
+        assert(target and target.Parent==Players,"Escolha o jogador no seletor do GOTO.")
+        local hum=target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+        assert(hum,"O personagem escolhido nao esta disponivel.")
+        assert(workspace.CurrentCamera,"A camera nao esta disponivel.")
+        stopMode("view")
+        local cameras={}
+        local function watch()
+            if target.Parent~=Players then stopMode("view");return end
+            local camera=workspace.CurrentCamera
+            local current=target.Character and target.Character:FindFirstChildOfClass("Humanoid")
+            if camera and current then
+                if not cameras[camera] then cameras[camera]={subject=camera.CameraSubject} end
+                camera.CameraSubject=current
+            end
+        end
+        local link=RunService.RenderStepped:Connect(watch)
+        active.view=function()
+            link:Disconnect()
+            for camera,old in pairs(cameras) do
+                if camera.Parent then
+                    local own=me.Character and me.Character:FindFirstChildOfClass("Humanoid")
+                    camera.CameraSubject=(old.subject and old.subject.Parent and old.subject) or own
+                end
+            end
+        end
+        watch()
+    end
+    actions.unview=function() stopMode("view") end
+    actions.maxzoom=function(value)
+        local n=number(value,0.5,1000)
+        assert(n>=me.CameraMinZoomDistance,"MAXZOOM precisa ser maior ou igual ao MINZOOM.")
+        change(me,"CameraMaxZoomDistance",n)
+    end
+    actions.minzoom=function(value)
+        local n=number(value,0.5,1000)
+        assert(n<=me.CameraMaxZoomDistance,"MINZOOM precisa ser menor ou igual ao MAXZOOM.")
+        change(me,"CameraMinZoomDistance",n)
+    end
+    local function extraCleanup()
+        for _,name in ipairs({"infjump","loopfullbright","spin","view"}) do stopMode(name) end
+        -- Restaurar o intervalo de zoom junto evita o clamp entre minimo e maximo.
+        local zoom=extraSaved[me]
+        if zoom then
+            local low=zoom.CameraMinZoomDistance or me.CameraMinZoomDistance
+            local high=zoom.CameraMaxZoomDistance or me.CameraMaxZoomDistance
+            me.CameraMinZoomDistance=0.5;me.CameraMaxZoomDistance=high;me.CameraMinZoomDistance=low
+            extraSaved[me]=nil
+        end
+        local objects={}
+        for obj in pairs(extraSaved) do objects[#objects+1]=obj end
+        for _,obj in ipairs(objects) do restoreObject(obj) end
+    end
     local rejoining=false
     actions.rejoin=function()
         if rejoining then return end
@@ -14593,6 +14751,7 @@ do
     end)
     commandCleanup=function()
         for _,name in ipairs({"fly","float","noclip","swim"}) do stopMode(name) end
+        extraCleanup()
         if speedHumanoid and speedHumanoid.Parent and savedSpeed~=nil then speedHumanoid.WalkSpeed=savedSpeed end
         speedHumanoid=nil;savedSpeed=nil
     end
@@ -14714,6 +14873,72 @@ do
     connect(fovBox.FocusLost,function(enter) if enter then applyFov() end end)
     button("PADRAO 70",0,602,1,function() fovBox.Text="70";applyFov() end)
     text(commandStack,"FOV so muda ao aplicar. Sua configuracao inicial e preservada.",UDim2.fromOffset(20,648),UDim2.new(1,-40,0,45),11,muted)
+    text(commandStack,"NOVOS COMANDOS · 1.1",UDim2.fromOffset(20,714),UDim2.new(1,-40,0,28),17).Font=Enum.Font.GothamBold
+    local additions={
+        {"jpower","Forca/altura do pulo, conforme o modo do jogo.","50"},
+        {"maxslopeangle","Inclinacao maxima para caminhar (0 a 89).","89"},
+        {"gravity","Gravidade local (0 a 1000).","196.2"},
+        {"hipheight","Altura do personagem em relacao ao chao.","2"},
+        {"sit","Sentar o personagem."},
+        {"jump","Fazer o personagem pular."},
+        {"infjump","Permitir novos pulos no ar."},
+        {"uninfjump","Desligar o pulo infinito."},
+        {"fullbright","Clarear a iluminacao local."},
+        {"loopfullbright","Manter a iluminacao clara continuamente."},
+        {"unloopfullbright","Parar de forcar a iluminacao."},
+        {"day","Definir o horario local como 14h."},
+        {"night","Definir o horario local como meia-noite."},
+        {"nofog","Ocultar neblina e densidade da atmosfera."},
+        {"brightness","Intensidade da luz (0 a 10).","2"},
+        {"globalshadows","Ativar sombras globais."},
+        {"unglobalshadows","Desativar sombras globais."},
+        {"restorelighting","Restaurar os valores de luz anteriores."},
+        {"stun","Ativar PlatformStand no personagem."},
+        {"unstun","Desativar PlatformStand."},
+        {"norotate","Desligar a rotacao automatica."},
+        {"unnorotate","Ligar a rotacao automatica."},
+        {"anchor","Imobilizar seu personagem."},
+        {"unanchor","Liberar seu personagem."},
+        {"spin","Girar o personagem (-100 a 100).","20"},
+        {"unspin","Parar o giro."},
+        {"view","Assistir ao jogador escolhido no GOTO."},
+        {"unview","Sair do modo espectador."},
+        {"maxzoom","Distancia maxima da camera (0.5 a 1000).","128"},
+        {"minzoom","Distancia minima da camera (0.5 a 1000).","0.5"},
+    }
+    for i,entry in ipairs(additions) do
+        local name,description,default=entry[1],entry[2],entry[3]
+        local y=754+(i-1)*100
+        local card=new("Frame",{Position=UDim2.fromOffset(14,y),Size=UDim2.new(1,-28,0,92),
+            BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0},commandStack)
+        new("UICorner",{CornerRadius=UDim.new(0,8)},card)
+        local info=text(card,description,UDim2.fromOffset(10,4),UDim2.new(1,-20,0,34),11,muted)
+        local input
+        if default then
+            input=new("TextBox",{Text=default,ClearTextOnFocus=false,Position=UDim2.fromOffset(10,42),
+                Size=UDim2.new(0.27,-10,0,38),BackgroundColor3=Color3.fromRGB(62,21,34),
+                BorderSizePixel=0,TextColor3=white,TextSize=14,Font=Enum.Font.GothamMedium},card)
+            new("UICorner",{CornerRadius=UDim.new(0,6)},input)
+        end
+        local b=new("TextButton",{Text=name:upper(),Position=UDim2.new(default and 0.27 or 0,10,0,42),
+            Size=UDim2.new(default and 0.73 or 1,-20,0,38),BackgroundColor3=Color3.fromRGB(62,21,34),
+            BorderSizePixel=0,TextColor3=white,TextSize=12,Font=Enum.Font.GothamBold},card)
+        new("UICorner",{CornerRadius=UDim.new(0,6)},b)
+        buttons[name]=b
+        local serial=0
+        local function run()
+            execute(name,input and input.Text or nil)
+            serial=serial+1;local current=serial
+            info.Text=commandStatus.Text
+            task.delay(4,function() if alive and info.Parent and serial==current then info.Text=description end end)
+        end
+        connect(b.Activated,run)
+        if input then connect(input.FocusLost,function(enter) if enter then run() end end) end
+    end
+    local fullHeight=754+#additions*100+16
+    commandStack.Size=UDim2.new(1,0,0,fullHeight)
+    commandList.CanvasSize=UDim2.fromOffset(0,fullHeight+100)
+
 end
 
 local introRecords=collectFade(panel,autoPanel)
