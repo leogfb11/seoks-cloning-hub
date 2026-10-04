@@ -367,17 +367,19 @@ local function cleanup()
 end
 connect(stop.Event, cleanup)
 local panel = new("Frame", {Name="Panel", Visible=false, AnchorPoint=Vector2.new(0.5,0),
-    Position=UDim2.fromScale(0.5,0.5), Size=UDim2.fromOffset(700,360),
+    Position=UDim2.fromScale(0.5,0.5), Size=UDim2.fromOffset(780,480),
     BackgroundColor3=Color3.fromRGB(32,10,17), BorderSizePixel=0, Active=true}, gui)
 new("UICorner", {CornerRadius=UDim.new(0,16)}, panel)
 new("UIStroke", {Color=Color3.fromRGB(198,34,65), Thickness=1}, panel)
+new("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(43,15,27)),
+    ColorSequenceKeypoint.new(1,Color3.fromRGB(17,9,17))}),Rotation=115},panel)
 local scale = new("UIScale", {}, panel)
 local function fit()
     local camera = workspace.CurrentCamera
-    if camera then scale.Scale = math.min(1, (camera.ViewportSize.X-24)/700, (camera.ViewportSize.Y-36)/360) end
+    if camera then scale.Scale = math.min(1, (camera.ViewportSize.X-32)/780, (camera.ViewportSize.Y-48)/480) end
 end
 fit()
-panel.Position=UDim2.new(0.5,0,0.5,-180*scale.Scale)
+panel.Position=UDim2.new(0.5,0,0.5,-240*scale.Scale)
 connect(gui:GetPropertyChangedSignal("AbsoluteSize"), fit)
 local function text(parent, value, pos, size, fontSize, color)
     return new("TextLabel", {Text=value, Position=pos, Size=size, BackgroundTransparency=1,
@@ -385,11 +387,12 @@ local function text(parent, value, pos, size, fontSize, color)
         TextXAlignment=Enum.TextXAlignment.Left, TextWrapped=true}, parent)
 end
 local top = new("Frame", {Size=UDim2.new(1,0,0,68), BackgroundTransparency=1, Active=true}, panel)
-local heading=text(top, "◆ SEOK'S CLONING HUB — Ver. 1.1",
-    UDim2.fromOffset(89,14), UDim2.new(1,-185,0,38), 17)
+local heading=text(top, "SEOK'S CLONING HUB  /  1.1",
+    UDim2.fromOffset(89,8), UDim2.new(1,-185,0,36), 19)
 heading.Font=Enum.Font.GothamBold
 heading.TextScaled=true
-new("UITextSizeConstraint", {MinTextSize=10, MaxTextSize=17}, heading)
+new("UITextSizeConstraint", {MinTextSize=10, MaxTextSize=19}, heading)
+text(top,"RUBY COLLECTION  ·  By: xLgfb_1357BRx",UDim2.fromOffset(91,43),UDim2.new(1,-190,0,16),10,muted)
 local minimize=new("TextButton", {Text="−", Position=UDim2.new(1,-84,0,20),
     Size=UDim2.fromOffset(28,28), BackgroundTransparency=1, TextSize=25,
     TextColor3=muted, Font=Enum.Font.GothamBold}, top)
@@ -397,10 +400,11 @@ new("Frame", {Position=UDim2.fromOffset(20,68),Size=UDim2.new(1,-40,0,1),
     BackgroundColor3=Color3.fromRGB(99,25,42),BorderSizePixel=0}, panel)
 local body=new("Frame", {Position=UDim2.fromOffset(20,88), Size=UDim2.new(1,-40,1,-108),
     BackgroundTransparency=1},panel)
-local nav=new("Frame", {Size=UDim2.new(0,174,1,0),BackgroundTransparency=1},body)
-local content=new("Frame", {Position=UDim2.fromOffset(194,0),Size=UDim2.new(1,-194,1,0),
-    BackgroundColor3=Color3.fromRGB(47,16,25),BorderSizePixel=0},body)
-new("UICorner",{CornerRadius=UDim.new(0,12)},content)
+local nav=new("Frame", {Size=UDim2.new(0,190,1,0),BackgroundTransparency=1},body)
+local content=new("Frame", {Position=UDim2.fromOffset(210,0),Size=UDim2.new(1,-210,1,0),
+    BackgroundColor3=Color3.fromRGB(26,13,22),BorderSizePixel=0},body)
+new("UICorner",{CornerRadius=UDim.new(0,14)},content)
+new("UIStroke",{Color=Color3.fromRGB(91,37,57),Thickness=1,Transparency=0.4},content)
 local function shape(parent,x,y,w,h,color,radius,rotation)
     local f=new("Frame",{Position=UDim2.fromOffset(x,y),Size=UDim2.fromOffset(w,h),
         BackgroundColor3=color, BorderSizePixel=0, Rotation=rotation or 0},parent)
@@ -409,9 +413,15 @@ local function shape(parent,x,y,w,h,color,radius,rotation)
 end
 local tabs={}
 local function tab(name,y,mask)
-    local b=new("TextButton",{Text="",Size=UDim2.fromOffset(174,48),Position=UDim2.fromOffset(0,y),
+    local b=new("TextButton",{Text="",Size=UDim2.fromOffset(190,52),Position=UDim2.fromOffset(0,y),
         BackgroundColor3=Color3.fromRGB(62,21,34),BorderSizePixel=0,AutoButtonColor=false},nav)
     new("UICorner",{CornerRadius=UDim.new(0,10)},b)
+    new("UIStroke",{Name="TabOutline",Color=Color3.fromRGB(118,43,67),Thickness=1,Transparency=0.65},b)
+    local marker=new("Frame",{Name="SelectionMarker",Position=UDim2.fromOffset(0,13),Size=UDim2.fromOffset(3,26),
+        BackgroundColor3=orange,BorderSizePixel=0,Visible=false},b)
+    new("UICorner",{CornerRadius=UDim.new(1,0)},marker)
+    connect(b.MouseEnter,function() Tween:Create(b.TabOutline,TweenInfo.new(0.15),{Transparency=0.05}):Play() end)
+    connect(b.MouseLeave,function() Tween:Create(b.TabOutline,TweenInfo.new(0.15),{Transparency=0.65}):Play() end)
     -- Tela de 32 x 32, centralizada no botao; silhuetas vetoriais independentes de fontes.
     local icon=new("Frame",{Name="MenuIcon",AnchorPoint=Vector2.new(0,0.5),
         Position=UDim2.new(0,11,0.5,0),Size=UDim2.fromOffset(32,32),
@@ -472,6 +482,12 @@ local function tab(name,y,mask)
         piece(wrench,9,2,4,9,white,1)
         piece(wrench,19,2,4,9,white,1)
         piece(wrench,12,24,8,7,white,3)
+    elseif mask=="rejoin" then
+        block(3,5,21,4,white,2)
+        block(3,5,4,22,white,2)
+        block(3,23,13,4,white,2)
+        block(13,14,15,4,white,2)
+        polygon({{23,9},{31,16},{23,23}},white,1)
     elseif mask=="stars" then
         local function sparkle(cx,cy,r)
             polygon({{cx,cy-r},{cx+r*0.3,cy-r*0.3},{cx+r,cy},{cx+r*0.3,cy+r*0.3},
@@ -494,36 +510,48 @@ local function tab(name,y,mask)
     return b
 end
 local cloneTab=tab("CLONAGEM",0,false)
-local extraTab=tab("EXTRAS",56,"skull")
-local commandsTab=tab("COMANDOS",112,"tools")
-local creditsTab=tab("CRÉDITOS",168,"stars")
-text(nav,"By: xLgfb_1357BRx",UDim2.new(0,8,1,-24),UDim2.new(1,-8,0,20),11,muted)
+local extraTab=tab("EXTRAS",60,"skull")
+local commandsTab=tab("COMANDOS",120,"tools")
+local rejoinTab=tab("REJOIN",180,"rejoin")
+local creditsTab=tab("CRÉDITOS",240,"stars")
+text(nav,"SEOK  /  VERSION 1.1",UDim2.new(0,8,1,-24),UDim2.new(1,-8,0,20),11,muted)
 local clonePage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1},content)
 local extraPage=new("ScrollingFrame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,
     Visible=false,BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,410),ScrollBarThickness=4,
     ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},content)
 local commandPage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false},content)
-local commandList=new("ScrollingFrame",{Position=UDim2.fromOffset(0,0),Size=UDim2.fromScale(1,1),
-    BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,805),ScrollBarThickness=4,
+local commandList=new("ScrollingFrame",{Size=UDim2.fromScale(1,1),
+    BackgroundTransparency=1,BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,0),
+    AutomaticCanvasSize=Enum.AutomaticSize.Y,ScrollBarThickness=4,
     ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},commandPage)
-local commandStack=new("Frame",{Position=UDim2.fromOffset(0,100),Size=UDim2.new(1,0,0,705),
-    BackgroundTransparency=1},commandList)
+new("UIPadding",{PaddingTop=UDim.new(0,12),PaddingBottom=UDim.new(0,12),
+    PaddingLeft=UDim.new(0,14),PaddingRight=UDim.new(0,14)},commandList)
+new("UIListLayout",{SortOrder=Enum.SortOrder.LayoutOrder,Padding=UDim.new(0,8)},commandList)
 local creditsPage=new("ScrollingFrame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false,
     BorderSizePixel=0,CanvasSize=UDim2.fromOffset(0,520),ScrollBarThickness=4,
     ScrollBarImageColor3=orange,ScrollingDirection=Enum.ScrollingDirection.Y},content)
+local rejoinPage=new("Frame",{Size=UDim2.fromScale(1,1),BackgroundTransparency=1,Visible=false},content)
+local rejoinAction=new("TextButton",{Text="REJOIN",AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),
+    Size=UDim2.new(1,-80,0,58),BackgroundColor3=Color3.fromRGB(133,33,65),BorderSizePixel=0,
+    TextColor3=white,Font=Enum.Font.GothamBold,TextSize=17},rejoinPage)
+new("UICorner",{CornerRadius=UDim.new(0,12)},rejoinAction)
+new("UIStroke",{Color=Color3.fromRGB(232,85,123),Thickness=1,Transparency=0.3},rejoinAction)
 local function selectPage(page)
     clonePage.Visible=page=="clone"
     extraPage.Visible=page=="extras"
     commandPage.Visible=page=="commands"
     creditsPage.Visible=page=="credits"
-    for name,button in pairs({clone=cloneTab,extras=extraTab,commands=commandsTab,credits=creditsTab}) do
-        button.BackgroundColor3=page==name and Color3.fromRGB(111,28,49) or Color3.fromRGB(62,21,34)
+    rejoinPage.Visible=page=="rejoin"
+    for name,button in pairs({clone=cloneTab,extras=extraTab,commands=commandsTab,rejoin=rejoinTab,credits=creditsTab}) do
+        button.SelectionMarker.Visible=page==name
+        Tween:Create(button,TweenInfo.new(0.18),{BackgroundColor3=page==name and Color3.fromRGB(120,32,61) or Color3.fromRGB(47,20,33)}):Play()
     end
 end
 connect(cloneTab.Activated,function() selectPage("clone") end)
 connect(extraTab.Activated,function() selectPage("extras") end)
 connect(commandsTab.Activated,function() selectPage("commands") end)
 connect(creditsTab.Activated,function() selectPage("credits") end)
+connect(rejoinTab.Activated,function() selectPage("rejoin") end)
 text(creditsPage,"CRÉDITOS",UDim2.fromOffset(22,16),UDim2.new(1,-44,0,30),20).Font=Enum.Font.GothamBold
 do
     local function creditCard(role,username,y)
@@ -14005,7 +14033,7 @@ connect(minimize.Activated,function()
     minimize.Text=collapsed and "+" or "−"
     -- AnchorPoint.Y=0 preserva o topo mesmo depois de arrastar a janela.
     collapseTween=Tween:Create(panel,TweenInfo.new(0.28,Enum.EasingStyle.Quart,Enum.EasingDirection.Out),
-        {Size=UDim2.fromOffset(700,collapsed and 74 or 360)})
+        {Size=UDim2.fromOffset(780,collapsed and 74 or 480)})
     collapseTween:Play()
     task.delay(0.28,function()
         if alive and serial==collapseSerial then body.Visible=not collapsed end
@@ -14260,7 +14288,7 @@ connect(Input.InputBegan,function(input,processed)
         if collapseTween then collapseTween:Cancel() end
         collapsed=false
         body.Visible=true
-        panel.Size=UDim2.fromOffset(700,360)
+        panel.Size=UDim2.fromOffset(780,480)
         minimize.Text="−"
         panel.Visible=true
         launcher.Visible=true
@@ -14426,8 +14454,10 @@ do
     local me=Players.LocalPlayer
     local active,buttons={},{}
     local savedSpeed,speedHumanoid
-    local commandStatus=text(commandStack,"WASD: voar · E/Q: subir/descer",UDim2.fromOffset(20,48),UDim2.new(1,-40,0,42),12,muted)
-    text(commandStack,"COMANDOS",UDim2.fromOffset(20,16),UDim2.new(1,-40,0,28),20).Font=Enum.Font.GothamBold
+    local commandStatus=text(commandList,"WASD: voar · E/Q: subir/descer",UDim2.fromOffset(0,0),UDim2.new(1,-8,0,32),12,muted)
+    commandStatus.LayoutOrder=5
+    local commandTitle=text(commandList,"COMANDOS",UDim2.fromOffset(0,0),UDim2.new(1,-8,0,28),20)
+    commandTitle.Font=Enum.Font.GothamBold;commandTitle.LayoutOrder=0
     local function character()
         local char=me.Character
         local hum=char and char:FindFirstChildOfClass("Humanoid")
@@ -14680,7 +14710,7 @@ do
     actions.unspin=function() stopMode("spin") end
     actions.view=function()
         local target=selectedTarget
-        assert(target and target.Parent==Players,"Escolha o jogador no seletor do GOTO.")
+        assert(target and target.Parent==Players,"Escolha um jogador em Selecionar jogador.")
         local hum=target.Character and target.Character:FindFirstChildOfClass("Humanoid")
         assert(hum,"O personagem escolhido nao esta disponivel.")
         assert(workspace.CurrentCamera,"A camera nao esta disponivel.")
@@ -14787,29 +14817,35 @@ do
         end
         refresh()
     end
-    local function button(caption,x,y,w,callback)
-        local b=new("TextButton",{Text=caption,Position=UDim2.new(x,20,y,0),Size=UDim2.new(w,-30,0,40),
-            BackgroundColor3=Color3.fromRGB(62,21,34),TextColor3=white,BorderSizePixel=0,
-            Font=Enum.Font.GothamBold,TextSize=13},commandStack)
-        b.Position=UDim2.new(x,20,0,y)
-        new("UICorner",{CornerRadius=UDim.new(0,8)},b)
-        connect(b.Activated,callback)
-        return b
-    end
-    -- Goto como primeiro item, rolando junto dos demais comandos.
-    text(commandList,"GOTO  ·  TELEPORTE",UDim2.fromOffset(20,8),UDim2.new(1,-40,0,24),14).Font=Enum.Font.GothamBold
+    connect(rejoinAction.Activated,function()
+        if rejoining then return end
+        execute("rejoin")
+        rejoinAction.Text=rejoining and "RECONECTANDO..." or "TENTAR NOVAMENTE"
+        task.delay(8,function() if alive and rejoinAction.Parent then rejoinAction.Text="REJOIN" end end)
+    end)
+    connect(TeleportService.TeleportInitFailed,function(who)
+        if who==me then rejoinAction.Text="TENTAR NOVAMENTE" end
+    end)
+    -- Uma unica lista: GOTO, comandos existentes e comandos adicionados.
+    local gotoCard=new("Frame",{Name="PlayerSelectionCard",LayoutOrder=1,Size=UDim2.new(1,-8,0,88),
+        BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0},commandList)
+    new("UICorner",{CornerRadius=UDim.new(0,8)},gotoCard)
+    text(gotoCard,"SELECIONAR JOGADOR",UDim2.fromOffset(10,5),UDim2.new(1,-20,0,26),14).Font=Enum.Font.GothamBold
     local function gotoRowButton(label,pos,size)
         local b=new("TextButton",{Text=label,Position=pos,Size=size,BackgroundColor3=Color3.fromRGB(62,21,34),
-            BorderSizePixel=0,TextColor3=white,TextSize=12,Font=Enum.Font.GothamBold,TextTruncate=Enum.TextTruncate.AtEnd},commandList)
+            BorderSizePixel=0,TextColor3=white,TextSize=12,Font=Enum.Font.GothamBold,TextTruncate=Enum.TextTruncate.AtEnd},gotoCard)
         new("UICorner",{CornerRadius=UDim.new(0,8)},b)
         return b
     end
-    local targetButton=gotoRowButton("Escolher jogador  +",UDim2.fromOffset(20,39),UDim2.new(1,-173,0,42))
-    local gotoButton=gotoRowButton("TELEPORTAR",UDim2.new(1,-143,0,39),UDim2.fromOffset(123,42))
-    local picker=new("ScrollingFrame",{Name="PlayerPicker",Visible=false,Position=UDim2.fromOffset(20,85),
-        Size=UDim2.new(1,-40,0,148),BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0,
-        ZIndex=20,ScrollBarThickness=4,ScrollBarImageColor3=orange,CanvasSize=UDim2.fromOffset(0,0)},commandList)
+    local targetButton=gotoRowButton("Escolher jogador +",UDim2.fromOffset(10,37),UDim2.new(1,-20,0,40))
+    local picker=new("ScrollingFrame",{Name="PlayerPicker",Visible=false,Position=UDim2.fromOffset(10,85),
+        Size=UDim2.new(1,-20,0,148),BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0,
+        ScrollBarThickness=4,ScrollBarImageColor3=orange,CanvasSize=UDim2.fromOffset(0,0)},gotoCard)
     new("UICorner",{CornerRadius=UDim.new(0,8)},picker)
+    local function setPicker(open)
+        picker.Visible=open
+        gotoCard.Size=UDim2.new(1,-8,0,open and 244 or 88)
+    end
     local function playerLabel(p) return "@"..p.Name.." ("..p.DisplayName..")" end
     local function refreshPlayers(excluded)
         for _,obj in ipairs(picker:GetChildren()) do if obj:IsA("GuiObject") then obj:Destroy() end end
@@ -14823,7 +14859,7 @@ do
             new("UICorner",{CornerRadius=UDim.new(0,6)},row)
             row.Activated:Connect(function()
                 if p.Parent~=Players then refreshPlayers(p);return end
-                selectedTarget=p;targetButton.Text=playerLabel(p);picker.Visible=false
+                selectedTarget=p;targetButton.Text=playerLabel(p);setPicker(false)
             end)
         end
         if #list==0 then
@@ -14833,48 +14869,31 @@ do
         picker.CanvasSize=UDim2.fromOffset(0,math.max(60,#list*38+12))
     end
     connect(targetButton.Activated,function()
-        picker.Visible=not picker.Visible
+        setPicker(not picker.Visible)
         if picker.Visible then refreshPlayers() end
     end)
-    connect(gotoButton.Activated,function() picker.Visible=false;execute("goto") end)
     connect(Players.PlayerAdded,function() if picker.Visible then refreshPlayers() end end)
     connect(Players.PlayerRemoving,function(p)
         if selectedTarget==p then selectedTarget=nil;targetButton.Text="Escolher jogador  +" end
         if picker.Visible then refreshPlayers(p) end
     end)
     connect(commandPage:GetPropertyChangedSignal("Visible"),function()
-        if not commandPage.Visible then picker.Visible=false end
+        if not commandPage.Visible then setPicker(false) end
     end)
-    for i,pair in ipairs({{"fly","unfly"},{"float","unfloat"},{"noclip","clip"},{"swim","unswim"}}) do
-        local on,off=pair[1],pair[2]
-        buttons[on]=button(on:upper(),0,99+(i-1)*51,0.5,function() execute(on) end)
-        button(off:upper(),0.5,99+(i-1)*51,0.5,function() execute(off) end)
-    end
-    text(commandStack,"SPEED",UDim2.fromOffset(20,363),UDim2.fromOffset(100,25),13)
-    local speedBox=new("TextBox",{Text="16",PlaceholderText="0 a 500",ClearTextOnFocus=false,
-        Position=UDim2.fromOffset(20,396),Size=UDim2.new(0.5,-30,0,40),
-        BackgroundColor3=Color3.fromRGB(32,10,17),TextColor3=white,BorderSizePixel=0,
-        Font=Enum.Font.GothamMedium,TextSize=15},commandStack)
-    new("UICorner",{CornerRadius=UDim.new(0,8)},speedBox)
-    button("APLICAR SPEED",0.5,396,0.5,function() execute("speed",speedBox.Text) end)
-    button("REJOIN",0,460,1,function() execute("rejoin") end)
-    text(commandStack,"FOV  ·  30 a 120",UDim2.fromOffset(20,518),UDim2.new(1,-40,0,25),13)
-    local fovBox=new("TextBox",{Text="70",PlaceholderText="30 a 120",ClearTextOnFocus=false,
-        Position=UDim2.fromOffset(20,550),Size=UDim2.new(0.5,-30,0,40),
-        BackgroundColor3=Color3.fromRGB(32,10,17),TextColor3=white,BorderSizePixel=0,
-        Font=Enum.Font.GothamMedium,TextSize=15},commandStack)
-    new("UICorner",{CornerRadius=UDim.new(0,8)},fovBox)
-    local function applyFov()
-        local value=tonumber(fovBox.Text)
-        if value and value==value and math.abs(value)<math.huge then fovBox.Text=tostring(math.clamp(value,30,120)) end
-        execute("fov",fovBox.Text)
-    end
-    button("APLICAR FOV",0.5,550,0.5,applyFov)
-    connect(fovBox.FocusLost,function(enter) if enter then applyFov() end end)
-    button("PADRAO 70",0,602,1,function() fovBox.Text="70";applyFov() end)
-    text(commandStack,"FOV so muda ao aplicar. Sua configuracao inicial e preservada.",UDim2.fromOffset(20,648),UDim2.new(1,-40,0,45),11,muted)
-    text(commandStack,"NOVOS COMANDOS · 1.1",UDim2.fromOffset(20,714),UDim2.new(1,-40,0,28),17).Font=Enum.Font.GothamBold
-    local additions={
+    local entries={
+        {"goto","Teleportar ate o jogador selecionado."},
+        {"view","Assistir ao jogador selecionado."},
+        {"unview","Voltar a camera para seu personagem."},
+        {"fly","Voar: WASD, E para subir e Q para descer."},
+        {"unfly","Desligar o voo."},
+        {"float","Ativar a plataforma sob os pes."},
+        {"unfloat","Remover a plataforma."},
+        {"noclip","Atravessar objetos."},
+        {"clip","Restaurar colisoes."},
+        {"swim","Ativar natacao no ar."},
+        {"unswim","Desligar natacao no ar."},
+        {"speed","Velocidade do personagem (0 a 500).","16"},
+        {"fov","FOV de 30 a 120. So muda ao aplicar.","70"},
         {"jpower","Forca/altura do pulo, conforme o modo do jogo.","50"},
         {"maxslopeangle","Inclinacao maxima para caminhar (0 a 89).","89"},
         {"gravity","Gravidade local (0 a 1000).","196.2"},
@@ -14901,17 +14920,15 @@ do
         {"unanchor","Liberar seu personagem."},
         {"spin","Girar o personagem (-100 a 100).","20"},
         {"unspin","Parar o giro."},
-        {"view","Assistir ao jogador escolhido no GOTO."},
-        {"unview","Sair do modo espectador."},
         {"maxzoom","Distancia maxima da camera (0.5 a 1000).","128"},
         {"minzoom","Distancia minima da camera (0.5 a 1000).","0.5"},
     }
-    for i,entry in ipairs(additions) do
+    for i,entry in ipairs(entries) do
         local name,description,default=entry[1],entry[2],entry[3]
-        local y=754+(i-1)*100
-        local card=new("Frame",{Position=UDim2.fromOffset(14,y),Size=UDim2.new(1,-28,0,92),
-            BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0},commandStack)
-        new("UICorner",{CornerRadius=UDim.new(0,8)},card)
+        local card=new("Frame",{Name="Command_"..name,LayoutOrder=i<=3 and i+1 or i+2,Size=UDim2.new(1,-8,0,name=="fov" and 138 or 92),
+            BackgroundColor3=Color3.fromRGB(32,10,17),BorderSizePixel=0},commandList)
+        new("UICorner",{CornerRadius=UDim.new(0,10)},card)
+        new("UIStroke",{Color=Color3.fromRGB(100,40,62),Thickness=1,Transparency=0.5},card)
         local info=text(card,description,UDim2.fromOffset(10,4),UDim2.new(1,-20,0,34),11,muted)
         local input
         if default then
@@ -14922,11 +14939,16 @@ do
         end
         local b=new("TextButton",{Text=name:upper(),Position=UDim2.new(default and 0.27 or 0,10,0,42),
             Size=UDim2.new(default and 0.73 or 1,-20,0,38),BackgroundColor3=Color3.fromRGB(62,21,34),
-            BorderSizePixel=0,TextColor3=white,TextSize=12,Font=Enum.Font.GothamBold},card)
+            BorderSizePixel=0,TextColor3=white,TextSize=13,Font=Enum.Font.GothamBold},card)
         new("UICorner",{CornerRadius=UDim.new(0,6)},b)
         buttons[name]=b
         local serial=0
         local function run()
+            if name=="goto" or name=="view" then setPicker(false) end
+            if name=="fov" then
+                local value=tonumber(input.Text)
+                if value and value==value and math.abs(value)<math.huge then input.Text=tostring(math.clamp(value,30,120)) end
+            end
             execute(name,input and input.Text or nil)
             serial=serial+1;local current=serial
             info.Text=commandStatus.Text
@@ -14934,10 +14956,14 @@ do
         end
         connect(b.Activated,run)
         if input then connect(input.FocusLost,function(enter) if enter then run() end end) end
+        if name=="fov" then
+            local reset=new("TextButton",{Text="PADRAO 70",Position=UDim2.fromOffset(10,88),Size=UDim2.new(1,-20,0,38),
+                BackgroundColor3=Color3.fromRGB(62,21,34),BorderSizePixel=0,TextColor3=white,
+                TextSize=13,Font=Enum.Font.GothamBold},card)
+            new("UICorner",{CornerRadius=UDim.new(0,6)},reset)
+            connect(reset.Activated,function() input.Text="70";run() end)
+        end
     end
-    local fullHeight=754+#additions*100+16
-    commandStack.Size=UDim2.new(1,0,0,fullHeight)
-    commandList.CanvasSize=UDim2.fromOffset(0,fullHeight+100)
 
 end
 
